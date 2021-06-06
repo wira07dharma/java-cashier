@@ -1,0 +1,222 @@
+/* 
+    Document   : newCascadeStyleSheet
+    Created on : Aug 25, 2015, 3:34:21 PM
+    Author     : dimata005
+    Description:
+        Purpose of the stylesheet follows.
+*/
+body {
+  overflow-x: hidden!important;
+  font-family: 'Source Sans Pro', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /*background-image: url("../../bootstrap3.1/img/vector-2.jpg");*/
+  background-color: #FFFFFF;
+}
+
+.container {
+    background-color: #FFFFFF;
+    height: 100%;
+}
+
+.btn-danger {
+    color: #FFF;
+    background-color: #693F33;
+    border-color: #693F33;
+}
+
+.btn-primary {
+    color: #FFF;
+    background-color: #693F33;
+    border-color: #693F33;
+}
+
+.items{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    width:46%; 
+    float:left; 
+    background:#DCDCDC; 
+    margin:5px 2%; 
+    padding:5px; 
+    height:150px; 
+    text-align:center;
+    color: #708090;
+}
+.items:hover{
+    background:#708090;
+    color: #C0C0C0;
+}
+
+.linkcustome{
+     color: #000000;
+}
+
+.linkcustome:hover{
+     color: red;
+}
+
+.itemsmenu{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    width:46%; 
+    float:left; 
+    background:#693F33; 
+    margin:5px 2%; 
+    padding:5px; 
+    height:50px; 
+    text-align:center;
+    color: #FFFFFF;
+}
+
+
+.itemsmenusearch{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    width:96%; 
+    float:left; 
+    background:#693F33; 
+    margin:5px 2%; 
+    padding:5px; 
+    height:50px; 
+    text-align:center;
+    color: #FFFFFF;
+}
+
+.linkcustometable{
+     color: #F90;
+}
+
+.linkcustometable:hover{
+     color: red;
+}
+
+.navbar {
+    min-height: 0px;
+}  
+
+.itemsicon{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    width:15%;
+     float:left; 
+    margin:5px 1%; 
+    padding:5px 2px; 
+    height:30px; 
+    text-align:center;
+    
+}
+.btn:hover{
+    background:#FFA500;
+}    
+.itemsiconsearch{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    width:63%;
+    float:left; 
+    margin:5px 1%; 
+    padding:5px 2px; 
+    height:30px; 
+    text-align:center;
+}
+
+.itemsiconsearch2{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    width:63%;
+    float:left; 
+    margin:5px 1%; 
+    padding:5px 2px;
+    text-align:center;
+}
+
+.itemsiconbread{
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 5px;
+    width:100%; 
+    padding:5px 2px; 
+    height:30px; 
+    text-align:left;
+    background:#BAE921;
+    color:#FFFFFF;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.itemsiconbread:hover{
+    background:#95BC16;
+    color:#FFFFFF;
+}
+
+.btn {
+    padding: 9px 12px;
+} 
+
+
+.activelink{
+     color:#A0522D;
+}
+
+.itemsiconsearchitem{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    width:30%;
+    float:left; 
+    margin:5px 1%; 
+    padding:5px 2px; 
+    text-align:center;
+}
+
+.itemsiconsearchitem2 {
+    border-radius: 10px;
+    width: 50%;
+    float: left;
+    padding:0px 6px;
+    text-align: center;
+    font-size: 5px;
+}
+
+.itemsiconbread22{
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 5px;
+    width:100%; 
+    padding:5px 2px; 
+    height:30px; 
+    text-align:left;
+    color:#FFFFFF;
+}
+
+
+.hidefungsi{
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 5px;
+    width:100%; 
+    padding:5px 2px; 
+    height:30px; 
+    text-align:left;
+    background:#BAE921;
+    color:#FFFFFF;
+}
+
+.itemsiconbreadnama{
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 5px;
+    width:100%; 
+    padding:5px 2px; 
+    height:30px; 
+    text-align:center;
+    background:#E99921;
+    color:#FFFFFF;
+    font-weight: bold;
+    font-size: 16px;
+}

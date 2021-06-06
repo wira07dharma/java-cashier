@@ -1,0 +1,4053 @@
+
+<%@page import="com.dimata.cashierweb.entity.cashier.transaction.QueensLocation"%>
+<%@page import="com.dimata.cashierweb.entity.cashier.transaction.PstQueensLocation"%>
+<%@page import="com.dimata.common.form.contact.FrmContactList"%>
+<%@page import="com.dimata.hanoman.form.masterdata.FrmContact"%>
+<%@page import="com.dimata.common.entity.location.PstLocation"%>
+<%@page import="com.dimata.common.entity.system.PstSystemProperty"%>
+<%@page import="com.dimata.posbo.entity.masterdata.PstRoom"%>
+<%@page import="com.dimata.cashierweb.entity.masterdata.TableRoom"%>
+<%@page import="com.dimata.cashierweb.entity.masterdata.PstTableRoom"%>
+<%@page import="com.dimata.posbo.form.masterdata.FrmRoom"%>
+<%@page import="com.dimata.posbo.entity.masterdata.Room"%>
+<%@page import="com.dimata.common.form.location.FrmNegara"%>
+<%@page import="com.dimata.gui.jsp.ControlCombo"%>
+<%@page import="com.dimata.common.entity.location.Negara"%>
+<%@page import="com.dimata.common.entity.location.PstNegara"%>
+<%@page import="com.dimata.pos.entity.balance.PstBalance"%>
+<%@page import="com.dimata.pos.entity.balance.Balance"%>
+<%@page import="com.dimata.common.entity.payment.PaymentSystem"%>
+<%@page import="com.dimata.pos.form.balance.FrmCashCashier"%>
+<%@page import="com.dimata.posbo.entity.masterdata.Shift"%>
+<%@page import="com.dimata.common.entity.location.Location"%>
+<%@page import="java.util.Date"%>
+<%@page import="com.dimata.util.Formater"%>
+<%@page import="com.dimata.common.entity.payment.PstPaymentSystem"%>
+<%@page import="com.dimata.qdep.form.FRMMessage"%>
+<%@page import="com.dimata.pos.form.billing.FrmBillDetail"%>
+<%@page import="com.dimata.cashierweb.form.admin.FrmAppUser"%>
+<%@page import="com.dimata.pos.form.payment.FrmCashCreditCard"%>
+<%@page import="com.dimata.hanoman.form.masterdata.FrmContactClass"%>
+<%@page import="com.dimata.cashierweb.entity.cashier.transaction.BillMainJSON"%>
+<%@page import="com.dimata.util.Command"%>
+<%@page import="com.dimata.pos.form.payment.FrmCashPayment"%>
+<%@page import="com.dimata.pos.entity.billing.PstBillMain"%>
+<%@page import="com.dimata.cashierweb.entity.cashier.transaction.PstCustomBillMain"%>
+<%@page import="com.dimata.pos.entity.balance.PstCashCashier"%>
+<%@page import="com.dimata.pos.entity.balance.CashCashier"%>
+<%@page import="com.dimata.cashierweb.entity.cashier.transaction.BillMainCostum"%>
+<%@page import="com.dimata.gui.jsp.ControlList"%>
+<%@page import="com.dimata.pos.form.billing.FrmBillMain"%>
+<%@page import="com.dimata.common.form.logger.FrmDocLogger" %>
+<%@page import="java.util.Vector"%>
+<%@include file="../main/javainit_cashier.jsp" %>
+<%!
+    public String drawList(int iCommand, Vector objectClass, long oidPaymentRec, FrmBillMain frmObject) {
+        //2
+        ControlList ctrlist = new ControlList();
+
+        ctrlist.setAreaWidth("100%"); //untuk mengatur width(lebar) table
+        ctrlist.setAreaStyle("listgen"); //untuk mengatur nama class table
+        ctrlist.setTitleStyle("tableheader"); //untuk mengatur nama class didalam kolom dalam baris table
+        ctrlist.setCellStyle("cellStyle");
+        ctrlist.setHeaderStyle("tableheader"); //mengatur nama class baris table
+        ctrlist.addHeader("No", "20%");
+        ctrlist.addHeader("Name", "20%");
+	ctrlist.addHeader("Room", "20%");
+        ctrlist.addHeader("Table Number", "20%");
+        ctrlist.addHeader("");
+
+        //membuat link dirow 0
+        ctrlist.setLinkRow(0);
+        ctrlist.setLinkSufix("");
+        Vector lstData = ctrlist.getData();
+        //membuat link menuju ke edit
+
+        ctrlist.reset();
+
+        int index = -1;
+
+        Vector rowx = new Vector(1, 1);
+        for (int i = 0; i < objectClass.size(); i++) {
+            //long famOid = 0;
+
+            BillMainCostum billMain = (BillMainCostum) objectClass.get(i);
+
+            
+            rowx = new Vector(1, 1);
+	    
+	    rowx.add(""+billMain.getInvoiceNo());
+	    rowx.add(""+billMain.getGuestName());
+	    rowx.add(""+billMain.getRoomName());
+	    rowx.add(""+billMain.getTableNumber());
+	    rowx.add("<center>"
+		    + "<input type='radio' name='"+FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID]+"' value='"+billMain.getOID()+"'>"	    
+		    + "</center>");
+            lstData.add(rowx);
+        }
+        return ctrlist.drawBootstrapStripted();
+    }
+    
+    public String drawListClosing(Vector listBalance,String verification) {
+        //2
+        ControlList ctrlist = new ControlList();
+
+        ctrlist.setAreaWidth("100%"); //untuk mengatur width(lebar) table
+        ctrlist.setAreaStyle("listgen"); //untuk mengatur nama class table
+        ctrlist.setTitleStyle("tableheader"); //untuk mengatur nama class didalam kolom dalam baris table
+        ctrlist.setCellStyle("cellStyle");
+        ctrlist.setHeaderStyle("tableheader"); //mengatur nama class baris table
+        ctrlist.addHeader("SUPEVISOR CONFIRMATION", "20%");
+	ctrlist.addHeader("RP", "20%");
+	ctrlist.addHeader("USD", "20%");
+        //membuat link dirow 0
+        ctrlist.setLinkRow(0);
+        ctrlist.setLinkSufix("");
+        Vector lstData = ctrlist.getData();
+        //membuat link menuju ke edit
+
+        ctrlist.reset();
+
+        int index = -1;
+	
+	Balance balance = new Balance();
+	
+	
+	Vector rowx = new Vector(1, 1);
+	rowx.add("<b>OPENING BALANCE<b>");
+	if(listBalance.size() > 0){
+	    for(int i=0;i<listBalance.size();i++){
+		balance = (Balance) listBalance.get(i);
+		
+		if(balance.getCurrencyOid() == 1){
+		    rowx.add(""
+			+ "<input type='text' class='form-control amountClosing amountRp money' name='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_AMOUNT1]+"' readonly='readonly' value='"+Formater.formatNumber(balance.getBalanceValue(),"#,###.##")+"'>"
+			+ "<input type='hidden' class='form-control' name='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_CURRENCY_ID]+"' readonly='readonly' value='"+balance.getCurrencyOid()+"'>");
+		}else{
+		    rowx.add(""
+			+ "<input type='text' class='form-control amountClosing amountUsd money' name='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_AMOUNT2]+"' readonly='readonly' value='"+Formater.formatNumber(balance.getBalanceValue(),"#,###.##")+"'>"
+			+ "<input type='hidden' class='form-control' name='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_CURRENCY_ID2]+"' readonly='readonly' value='"+balance.getCurrencyOid()+"'>");
+		}
+		
+		
+		
+	    }
+	}
+	lstData.add(rowx);
+        
+	
+	rowx = new Vector(1,1);
+	rowx.add("<b>CASH</b>");
+	rowx.add("<input type='text' name='CASH_PAYMENT' class='form-control amountClosing amountRp money'>");
+	rowx.add("<input type='text' name='CASH_PAYMENT' class='form-control amountClosing amountUsd money'>");
+	lstData.add(rowx);
+	
+	rowx = new Vector(1,1);
+	rowx.add("<b>CREDIT CARD</b>");
+	rowx.add("<input type='text' name='CREDIT_CARD_PAYMENT' class='form-control amountClosing amountRp money'>");
+	rowx.add("<input type='text' name='CREDIT_CARD_PAYMENT' class='form-control amountClosing amountUsd money'>");
+	lstData.add(rowx);
+	
+	rowx = new Vector(1,1);
+	rowx.add("<b>BG</b>");
+	rowx.add("<input type='text' name='BG_PAYMENT' class='form-control amountClosing amountRp money' >");
+	rowx.add("<input type='text' name='BG_PAYMENT' class='form-control amountClosing amountUsd money' >");
+	lstData.add(rowx);
+	
+	rowx = new Vector(1,1);
+	rowx.add("<b>CHEQUE</b>");
+	rowx.add("<input type='text' name='CHECK_PAYMENT' class='form-control amountClosing amountRp money' >");
+	rowx.add("<input type='text' name='CHECK_PAYMENT' class='form-control amountClosing amountUsd money'>");
+	lstData.add(rowx);
+	
+	rowx = new Vector(1,1);
+	rowx.add("<b>DEBIT CARD</b>");
+	rowx.add("<input type='text' name='DEBIT_CARD_PAYMENT' class='form-control amountClosing amountRp money'>");
+	rowx.add("<input type='text' name='DEBIT_CARD_PAYMENT' class='form-control amountClosing amountUsd money'>");
+	lstData.add(rowx);
+	
+	rowx = new Vector(1,1);
+	rowx.add("");
+	rowx.add("");
+	rowx.add("");
+	lstData.add(rowx);
+	
+	rowx = new Vector(1,1);
+	rowx.add("<b>TOTAL CLOSING AMOUNT</b>");
+	rowx.add("<input type='text' name='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_BALANCE_VALUE]+"' class='form-control money' id='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_SUBTOTAL1]+"'>");
+	rowx.add("<input type='text' name='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_SUBTOTAL2]+"' class='form-control money' id='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_SUBTOTAL2]+"'>");
+
+	lstData.add(rowx);
+	//pengecekan type verifikasi, apakah menggunakan finger print atau tidak
+        if (verification.equals("1")){
+            rowx = new Vector(1,1);
+            rowx.add("<b>SUPERVISOR</b>");
+            rowx.add("<input id='supervisorName' type='text' name='"+FrmAppUser.fieldNames[FrmAppUser.FRM_LOGIN_ID]+"' class='form-control' placeholder='Supervisor Username' required='required'>");
+            rowx.add("");
+            lstData.add(rowx);
+            
+            rowx = new Vector(1,1);
+            rowx.add("");
+            rowx.add("<div id='dynamicPlace2'></div>");
+            rowx.add("");
+            lstData.add(rowx);
+            
+            rowx = new Vector(1,1);
+            rowx.add("");
+            rowx.add("<input id='passwordSpv' type='hidden' name='"+FrmAppUser.fieldNames[FrmAppUser.FRM_PASSWORD]+"' class='form-control' placeholder='Supervisor Password' required='required'>"
+                    + "<input type='hidden' class='insert-total'>"
+                    + "<input type='hidden' class='insert-cost' value='0'>"
+                    + "<input type='hidden' name='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_TYPE]+"' value='1'");
+            rowx.add("");
+            lstData.add(rowx);
+        }else{
+            rowx = new Vector(1,1);
+            rowx.add("<b>SUPERVISOR</b>");
+            rowx.add("<input type='text' name='"+FrmAppUser.fieldNames[FrmAppUser.FRM_LOGIN_ID]+"' class='form-control' placeholder='Supervisor Username' required='required'>");
+            rowx.add("");
+            lstData.add(rowx);
+            
+            rowx = new Vector(1,1);
+            rowx.add("<b>PASSWORD</b>");
+            rowx.add("<input type='password' name='"+FrmAppUser.fieldNames[FrmAppUser.FRM_PASSWORD]+"' autocomplete='off' class='form-control' placeholder='Supervisor Password' required='required'>"
+                    + "<input type='hidden' class='insert-total'>"
+                    + "<input type='hidden' class='insert-cost' value='0'>"
+                    + "<input type='hidden' name='"+FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_TYPE]+"' value='1'");
+            rowx.add("");
+            lstData.add(rowx);
+        }
+        
+        return ctrlist.drawBootstrapStripted();
+    }
+%>
+<%
+    CashCashier cashCashier = new CashCashier();
+    Location location = new Location();
+    Vector listBalance = new Vector(1,1);
+    Shift shift = new Shift();
+    
+    Vector listOpeningCashier =  PstCashCashier.listCashOpening(0, 0, 
+	    "CSH."+PstCashCashier.fieldNames[PstCashCashier.FLD_APPUSER_ID]+"='"+userId+"' "
+	    + "AND CSH."+PstCashCashier.fieldNames[PstCashCashier.FLD_SPVCLOSE_OID]+"='1'", "");
+    
+    
+    Vector openingCashier = new Vector(1,1);
+    Vector listBillMain = new Vector(1,1);
+    if(listOpeningCashier.size() != 0){
+	openingCashier = (Vector) listOpeningCashier.get(0);
+	if(openingCashier.size() != 0 ){
+
+	    cashCashier = (CashCashier) openingCashier.get(0);
+	    location = (Location) openingCashier.get(2);
+	    shift = (Shift) openingCashier.get(3);
+	    listBalance = PstBalance.list(0, 0, ""+PstBalance.fieldNames[PstBalance.FLD_BALANCE_TYPE]+"='0' "
+		    + "AND "+PstBalance.fieldNames[PstBalance.FLD_CASH_CASHIER_ID]+"='"+cashCashier.getOID()+"'", "");
+	}
+
+	listBillMain = PstCustomBillMain.listOpenBill(0, 0, 
+		""+PstBillMain.fieldNames[PstBillMain.FLD_DOC_TYPE]+"='0' "
+		+ "AND "+PstBillMain.fieldNames[PstBillMain.FLD_TRANSCATION_TYPE]+"='0' "
+		+ "AND "+PstBillMain.fieldNames[PstBillMain.FLD_TRANSACTION_STATUS]+"='1' "
+		+ "AND "+ PstBillMain.fieldNames[PstBillMain.FLD_STATUS_INVOICING]+"='1'", "");
+    }
+    
+    
+    
+    FrmBillMain frmBillMain = new FrmBillMain();
+    
+    
+    String multilocation = PstSystemProperty.getValueByName("OUTLET_MULTILOCATION");
+    long defaultOidLocation = Long.parseLong(PstSystemProperty.getValueByName("OUTLET_DEFAULT_LOCATION"));
+    String defaultOidPriceType = PstSystemProperty.getValueByName("OUTLET_DEFAULT_PRICE_TYPE");
+    String displayLocation = "";
+    
+    //ini adalah fungsi pengecekan apakah menggunakan approval finger atau tidak
+    String verificationType = PstSystemProperty.getValueByName("KASIR_LOGIN_TYPE");
+    String cssDisplay = "";
+    if (verificationType.equals("1")){
+        cssDisplay = "display:none;";
+    }else{
+        cssDisplay = "display:block;";
+    } 
+    
+    String cssDisplay2 = "";
+    if (verificationType.equals("1")){
+        cssDisplay2 = "display:none;";
+    }else{
+        cssDisplay2 = "";
+    }
+    
+    //ini adalah fungsi pengecekan apakah perlu guest atau tidak
+    String defineGuest = PstSystemProperty.getValueByName("CASHIER_USE_GUEST_ON_NEW_ORDER");
+    
+    //oidDepartementFB 
+    //String oidDepartementStr = "504404529109219569";
+    //long oidDepartement = Long.parseLong(oidDepartementStr);
+    
+    
+    //ini adalah fungsi untuk mengecek apakah menggunakan card reader atau tidak;
+    String cardReader = PstSystemProperty.getValueByName("CASHIER_USE_READERCARD");
+%>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Transaction - Dimata Cashier</title>
+    <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
+    <%@include file="cashier-css.jsp" %>
+    <script type="text/javascript" src="../styles/cashier/dist/js/numberformat.js"></script>
+  </head>
+  <body class="skin-queentandoor sidebar-mini wysihtml5-supported sidebar-collapse fixed">
+    <div class="wrapper nonprint">
+      
+      <header class="main-header">
+	  <%@include file="cashier-header.jsp" %>
+      </header>
+      <!-- Left side column. contains the logo and sidebar -->
+      <aside class="main-sidebar">
+	    <%
+		String home = "";
+		String transaction = "active";
+	    %>
+	    <%@include file="cashier-sidebar.jsp" %>
+      </aside>
+
+      <!-- Content Wrapper. Contains page content -->
+      <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+          <h1>
+	     Dimata Cashier
+            <small>Transaction</small>
+          </h1>
+          <ol class="breadcrumb">
+            <li><a href="<%= approot %>/cashier/cashier-home.jsp"><i class="fa fa-home"></i> Home</a></li>
+            <li class="active">Transaction</li>
+          </ol>
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+	    <div class="row">
+		<div class="col-md-12">
+		    <div class="box box-primary">
+			<div class="box-header with-border ">
+			    <div class="col-md-3">
+				<h3 class="box-title">Transaction</h3>
+                                <input type="hidden" id="mainBillIdSource" value="0">
+                                <input type="hidden" id="locationBillIdSource" value="0">
+				<button class="btn btn-primary pull-right" id="neworder" style="display:none;">
+				    <i class="fa fa-plus"></i> New Order
+				</button>
+                                <button class="btn btn-primary pull-right" id="neworder2">
+				    <i class="fa fa-plus"></i> New Order
+				</button>
+			    </div>
+			    <div class="col-md-4">
+				<form class="additem">
+				    <%
+					String locationActive = "";
+					if(multilocation.equals("0")){
+					    locationActive = displayLocation;
+					}else{
+					    locationActive = ""+location.getOID();
+					}
+				    %>
+				    <div class="input-group">
+					<input type="hidden" name="loadtype" value="loaditemlist">
+					<input type="hidden" name="LOCATION_ID" value="<%= locationActive %>">
+					<input id="searchBarcode" type="text" name="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>" class="form-control itemsearch" placeholder="Scan or Search Items" readonly="true"/>
+					<div class="input-group-addon" style="padding:0px;border:none;">
+					    <button class="btn btn-primary input-group-addon itemsearchbutton" id="searchItemFront" style="padding-bottom: 9px;padding-top: 9px;padding-right: 25px;border-right: 1px solid #D2D6DE" disabled="true">
+						<i class="fa fa-search"></i>
+					    </button>
+					</div>
+				    </div><!-- /.input group -->
+				</form>
+			    </div>
+			    
+			    <div class="col-md-5 pull-right">
+				<button id="openBillSearch" class="btn btn-primary btnOpenBill" data-load-type="loadsearch">
+				    <i class="fa fa-folder-open"></i> Open Bill
+				</button>
+				<button class="btn btn-primary btnOpenBill" data-load-type="loadsearchreturn">
+				    <i class="fa fa-folder-open"></i> Return Bill
+				</button>
+                                <button class="btn btn-primary " id ='btnReprintBill'>
+				    <i class="fa fa-print"></i> Reprint Bill
+				</button>
+				<button class="btn btn-success" id="btnClosingBalance">
+				    <i class="fa fa-close"></i> Closing Balance
+				</button>
+			    </div>
+			</div>
+			<div class="box-body" id="CONTENT_LOAD">
+			    
+			</div>
+			<div class="box-footer">
+			</div>
+			<div class="overlay" style="display:none;" id="CONTENT_ANIMATE_CHECK">
+			    <i class="fa fa-refresh fa-spin"></i>
+			</div>
+		    </div>
+		</div>
+	    </div>
+	</section>
+      </div>
+      <footer class="main-footer" style="bottom: 0;position: fixed;width: 100%">
+	  <div id="CONTENT_TOTAL" style="display:none;" class="col-md-12">
+	    <div class="col-md-3">
+		  <button class="btn btn-warning" style="display:none;">HOLD</button>
+		  <button class="btn btn-danger authorizeCancel" id="btnCancel" data-title="CANCEL BILL" data-load-type="cancelbill">
+		      <i class="fa fa-close"></i> Cancel Bill
+		  </button>
+		  <button class="btn btn-primary authorize" id="btnMove" data-title="MOVE BILL" data-load-type="movebill">
+		      <i class="fa fa-share"></i> Move Bill
+		  </button>
+		  <button class="btn btn-primary" style="display:none;">
+		      %
+		  </button>
+		  <button class="btn btn-primary" style="display:none;">
+		      <i class="fa fa-user"></i>&nbsp;
+		  </button>
+	      </div>
+	      <div class="col-md-1 pull-right">&nbsp;</div>
+	      <div class="col-md-5 pull-right">
+	      
+	      <table style="background-color: #222D32;border-radius: 5px;">
+		    <tr>
+			<td style="padding:4px;" width="10%"><b style="color:#a1a1a1;">GRAND TOTAL</b></td>
+			<td style="padding:4px;" width="80%"><center><font size="5" id="grandTotal" color="white"></font></center></td>
+			<td style="padding:4px;" width="10%"><button class="btn btn-success" id="btnPay"><b>PAY</b></button></td>
+		    </tr>
+		</table>
+	      </div>
+	  </div>    
+      </footer>
+    </div>
+    
+    <!-- JQUERY & BOOTSTRAP COMPONEN -->
+    <%@include file="cashier-jquery-bootstrap.jsp" %>
+   
+    <script type="text/javascript" src="../styles/cashier/signature/flashcanvas.js"></script>
+    <script type="text/javascript" src="../styles/cashier/signature/jSignature.min.js"></script>
+    <script type="text/javascript">
+        jQuery.tableNavigation();
+    </script>
+    <script type="text/javascript">
+	$(document).ready(function(){
+	    if(<%= listOpeningCashier.size() %> == 0){
+		window.location = "<%= approot %>/cashier/cashier-home.jsp";
+	    }
+            
+	    var modalSetting = {
+		"backdrop":"static",
+		"keyboard":false,
+		"show":false
+	    };
+            var modalSetting2 = {
+		"backdrop":"static",
+		"keyboard":true,
+		"show":false
+	    };
+	    $("#openpay").modal(modalSetting2);
+	    $("#openbill").modal(modalSetting2);
+	    $("#opensearchmember").modal(modalSetting);
+	    $("#openauthorize").modal(modalSetting2);
+	    $("#openprintpreview").modal(modalSetting2);
+	    $("#openclosingbalance").modal(modalSetting);
+	    $("#openitemlist").modal(modalSetting2);
+	    $("#openmovesetguest").modal(modalSetting);
+	    $("#openadditem").modal(modalSetting);
+	    $("#openneworder").modal(modalSetting);
+	    $("#opennewmember").modal(modalSetting);
+	    //$("#openbill").modal("show");
+            
+            //TABLE NAVIGATION
+            function tableNav(){
+                jQuery.tableNavigation();
+            }
+            var lockKeyCode=[
+                //all of function
+                "112","113","114","115","116","117","118","119","120","121","122","123","124","125","126",
+                //esential key (enter etc)
+                "13"
+                
+            ];
+            
+            function globalKeyboard(e){
+                var listControl = [
+                    "116", 
+                    "117",
+                    "118",
+                    "114"
+                ];
+                
+                var listEvent = [
+                    "click",
+                    "click",
+                    "click",
+                    "click"
+                ];
+                
+                var listDestination = [
+                    "neworder2",
+                    "openBillSearch",
+                    "searchItemFront",
+                    "btnReprintBill"
+                ];
+                var eventCode = String(e.keyCode);
+                var index = listControl.indexOf(eventCode); 
+                var event = listEvent[index];
+                var destination = listDestination[index];
+                
+                return event + ":" + destination;
+            }
+            
+            function specificKeyboard(param){
+                var listEventControl = [
+                    "btnNewOrderClick:13", //0
+                    "searchBarcode:13", //1
+                    "searchBarcode:116", //2
+                    "searchBarcode:117", //3
+                    "searchBarcode:118", //4
+                    "spvName:13", //5
+                    "password:13", //6
+                    "searchBarcode:119", //7
+                    "member:13", //8
+                    "transaction_type:13", //9
+                    "MASTER_FRM_FIELD_PAY_TYPE:13", //10
+                    "FRM_FIELD_PAY_TYPE:13", //11
+                    "FRM_FIELD_CURR_ID:13",
+                    "FRM_FIELD_PAY_AMOUNT:13",
+                    "searchBarcode:114"
+                ];
+                
+                var listEventDestination = [
+                    "neworder:click",
+                    "searchItemFront:click",
+                    "neworder2:click",
+                    "openBillSearch:click",
+                    "searchItemFront:click",
+                    "password:focus",
+                    "btnAuthorize:click",
+                    "btnPay:click",
+                    "transaction_type:focus",
+                    "MASTER_FRM_FIELD_PAY_TYPE:focus",
+                    "FRM_FIELD_PAY_TYPE:focus",
+                    "FRM_FIELD_CURR_ID:focus",
+                    "FRM_FIELD_PAY_AMOUNT:focus",
+                    "btnPaySave:click",
+                    "btnReprintBill:click"
+                ];
+                
+                var index = listEventControl.indexOf(param);
+                var event = listEventDestination[index];
+                return event;
+            }
+            
+            function keyPressProcess(e,id){
+               
+                var index=0;
+                var getKeyCode="";
+                
+                getKeyCode = String(e.keyCode);
+                
+                //cek apakah event tersebut di terkunci
+                try {
+                    index = lockKeyCode.indexOf(getKeyCode);
+                }
+                catch(err) {
+                    index = -1;
+                }
+                //alert(id);
+                if (index!=-1){
+                    //cek apakah lokasi terjadinya event memiliki id
+                    if (id==""){
+                        //jika tidak maka jalankan function global keyboard
+                        var result = globalKeyboard(e);
+                        var temp = result.split(":");
+                        var destination = temp[1];
+                        var event = temp[0];
+                    }else{
+                        //jika ya maka jalankan function specific keyboard
+                        var param = ""+id+":"+String(e.keyCode)+"";
+                        var result = specificKeyboard(param);
+                        var temp = result.split(":");
+                        var destination = temp[0];
+                        var event = temp[1];
+                        
+                    }
+                    
+                    if (event=="click"){
+                        $('#'+destination+'').trigger(''+event+'');
+                    }else if (event=="focus"){
+                        
+                        $('#'+destination+'').focus();
+                    }
+                    
+                    
+                    e.preventDefault();
+                    return false;
+                }else{
+                    
+                }
+                
+                
+            }
+            
+           function catchKey(){
+              $(document).keypress(function(e){
+                
+                var id ="";
+                
+                try {
+                    id = $(e.target).attr("id");
+                }
+                catch(err) {
+                    id = "";
+                } 
+                if(typeof id === 'undefined'){
+                    id="";
+                };
+                
+                keyPressProcess(e,id);
+            }); 
+           }
+            catchKey();
+            function textual(){
+                $('.textual').keydown(function(e){
+                    if (e.keyCode==40){
+                        $(this).parent().parent().next('tr').find('input').focus();  
+                    }else if (e.keyCode==38){  
+                        if ($(this).hasClass('firstFocus')){
+                            $('#openitemlist #searchItemModal').focus();
+                        }else{
+                            $(this).parent().parent().prev('tr').find('input').focus();
+                        }
+                        
+                    }else if (e.keyCode==13){
+                        $(this).trigger('click');
+                    }
+                });
+            }
+            
+            function textual2(){
+                $('.textual2').keydown(function(e){
+                    if (e.keyCode==40){
+                        $(this).parent().parent().next('tr').find('input').focus();  
+                    }else if (e.keyCode==38){  
+                        if ($(this).hasClass('firstFocus')){
+                            $('#openbill #datasearch').focus();
+                        }else{
+                            $(this).parent().parent().prev('tr').find('input').focus();
+                        }
+                        
+                    }else if (e.keyCode==13){
+                        $(this).trigger('click');
+                    }
+                });
+            }
+            
+            function textual3(){
+                $('.textual3').keydown(function(e){
+                    if (e.keyCode==40){
+                        $(this).parent().parent().next('tr').find('input').focus();  
+                    }else if (e.keyCode==38){  
+                        if ($(this).hasClass('firstFocus')){
+                            $('#searchBarcode').focus();
+                        }else{
+                            $(this).parent().parent().prev('tr').find('input').focus();
+                        }
+                   
+                        
+                    }else if (e.keyCode==69){
+                        //$(this).trigger('click');
+                        var thisId= $(this).attr('id');
+                        var temp = thisId.split("_");
+                        var id = temp[1];
+                        $('#editmainitem_'+id+'').trigger('click');
+                        
+                    }else if (e.keyCode==68){
+                        var thisId= $(this).attr('id');
+                        var temp = thisId.split("_");
+                        var id = temp[1];
+                        $('#deletemainitem_'+id+'').trigger('click');
+                    }else if (e.keyCode==119){
+                        $('#btnPay').trigger('click');
+                    }
+                });
+            }
+            
+            function textual4(){
+                $('.textual4').keydown(function(e){
+                    if (e.keyCode==40){
+                        $(this).parent().parent().next('tr').find('input').focus();  
+                    }else if (e.keyCode==38){  
+                        if ($(this).hasClass('firstFocus')){
+                            $('#openbillreprint #dataSearchReprint').focus();
+                        }else{
+                            $(this).parent().parent().prev('tr').find('input').focus();
+                        }
+                        
+                    }else if (e.keyCode==13){
+                        $(this).trigger('click');
+                    }
+                });
+            }
+            
+            function searchItemModal(){
+                $('#searchItemModal').keydown(function(e){
+                    if (e.keyCode==40){ 
+                        $('#openitemlist .firstFocus').focus();
+                    }
+                });
+            }
+            
+            function datasearch(){
+                $('#openbill #datasearch').keydown(function(e){
+                    if (e.keyCode==40){ 
+                        $('#openbill .firstFocus').focus();
+                    }
+                });
+            }
+            
+            function dataSearchReprint(){
+                $('#dataSearchReprint').keydown(function(e){
+                            
+                    if (e.keyCode==40){ 
+                        //alert('test2');
+                        $('#openbillreprint .firstFocus').focus();
+                    }
+                });
+            }
+            
+            $('#searchBarcode').keydown(function(e){
+                if (e.keyCode==40){ 
+                    $('#mainTransaction .firstFocus').focus();
+                }
+            });
+            
+            //ALL ABOUT KEYBOARD
+            $(".modal").on('shown.bs.modal', function() {
+                var id = $(this).attr('id');
+                if (id=="openadditem"){
+                    $('#openadditem #FRM_FIELD_QTY').focus();
+                }else if(id=="openpay"){
+                    setTimeout(function(){
+                        $('#openpay #member').focus();
+                    }, 200);
+                   
+                
+                }else{
+                    $(this).find('button:visible:first').focus();
+                    $(this).find('input:text:visible:first').focus();
+                }
+                
+            });
+            $('.modal').on('hidden.bs.modal', function () {
+                var id = $(this).attr('id');
+                if (id=="openadditem"){
+                    $('#openitemlist #searchItemModal').focus();
+                }else if (id=="openitemlist" || id =="openbill" ||id=="openauthorize" || id=="openpay"){
+                    $('#searchBarcode').focus();
+                }else{
+                    
+                }
+            });
+	    //BUTTON CLICK
+	    $("#btnOpen").click(function(){
+		
+		var checkedData = $("input:radio[name=<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_CASH_BILL_MAIN_ID] %>]:checked").val();
+		
+		if(checkedData > 0){
+		    
+		    $("#CONTENT_ANIMATE_CHECK").fadeIn("medium");
+		
+		    $("#openbill").modal("hide");
+		    
+		    $("#btnPay").data("oid",checkedData);
+                    $('#mainBillIdSource').val(checkedData);
+                    getLocationByCashBillMain(checkedData);
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_MAIN_ID] %>_ADD_ITEM").val(checkedData);
+		    $("#btnCancel").data("oid",checkedData);
+		    $("#btnMove").data("oid",checkedData);
+		    loadTransaction(checkedData,"loadbill",<%= Command.NONE %>,0,"CONTENT_LOAD");
+		    $(".itemsearch").removeAttr("readonly");
+		    $(".itemsearchbutton").removeAttr("disabled");
+		}else{
+		    alert("Please select transaction");
+		}
+		
+	    });
+            
+            //SELECT BILL ON CLICK ON THE GRID
+            function selectBillToOpen(){
+                $(".searchBillSelect").click(function(){
+		
+                    var checkedData = $(this).data("mainoid");
+                    if(checkedData > 0){
+
+                        $("#CONTENT_ANIMATE_CHECK").fadeIn("medium");
+
+                        $("#openbill").modal("hide");
+
+                        $("#btnPay").data("oid",checkedData);
+                        $('#mainBillIdSource').val(checkedData);
+                        getLocationByCashBillMain(checkedData);
+                        $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_MAIN_ID] %>_ADD_ITEM").val(checkedData);
+                        $("#btnCancel").data("oid",checkedData);
+                        $("#btnMove").data("oid",checkedData);
+                        loadTransaction(checkedData,"loadbill",<%= Command.NONE %>,0,"CONTENT_LOAD");
+                        $(".itemsearch").removeAttr("readonly");
+                        $(".itemsearchbutton").removeAttr("disabled");
+                    }else{
+                        alert("Please select transaction");
+                    }
+
+                });
+            }
+            
+            function searchBillToReturn(){
+                $('.searchBillReturnSelect').click(function(){
+                    var checkedData = $(this).data("mainoid");
+                    $('#selectedIdBill').val(checkedData);
+                    $("form#returnBill").trigger('submit');
+                });
+            
+            }
+            
+	    
+	    $("#btnSelect").click(function(){
+		
+		var checkedData = $("input[name=employee]:checked").val();
+		var personName = $("input[name=employee]:checked").data("name");
+		var personDiscPct = $("input[name=employee]:checked").data("discPct");
+		var personDiscVal = $("input[name=employee]:checked").data("discVal");
+		var phoneNumber = $("input[name=employee]:checked").data("phoneNumber");
+		
+		if(checkedData > 0){
+		    $("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CUSTOMER_ID] %>").val(checkedData);
+		    $("#employee").val(personName);
+		    $("#CUSTOMER_NAME").val(personName);
+		    $("#<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>").val(phoneNumber);
+		    $("#opensearchmember").modal("hide");
+		    $("#transaction_type").val("");
+		    $("#result").fadeOut("fast");
+		    $("#resultSave").fadeOut("fast");
+		    $("#CONTENT_PAYMENT_TYPE").fadeOut("fast");			
+		    $("#CONTENT_SUB_PAYMENT_SYSTEM_CASH").fadeOut("fast");
+		    $("#CONTENT_PAYMENT_SYSTEM").fadeOut("fast");
+		    $("#transaction_type").val("");
+		    
+		    $("#discountpercentage").val(personDiscPct);
+		    if(personDiscPct > 0){
+			var getBalanceVal = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val();
+			personDiscVal = getBalanceVal*(personDiscPct/100);
+			personDiscVal = formatNumber(personDiscVal);
+		    }else{
+			personDiscVal = personDiscVal;		    
+		    }
+		    $("#discountnominal").val(personDiscVal);
+		    
+		    balanceCalc();
+		}else{
+		    alert("Please select transaction");
+		}
+		
+	    });
+            
+            //SELECT GUEST WHEN CLICK GUEST LIST IN THE POP UP GRID
+            function clickSelectGuest(){
+                $(".selectGuest").click(function(){
+		
+                    var checkedData = $(this).data("oid");
+                    var personName = $(this).data("name");
+                    var personDiscPct = $(this).data("discPct");
+                    var personDiscVal = $(this).data("discVal");
+                    var phoneNumber = $(this).data("phoneNumber");
+
+                    if(checkedData > 0){
+                        $("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CUSTOMER_ID] %>").val(checkedData);
+                        $("#employee").val(personName);
+                        $("#CUSTOMER_NAME").val(personName);
+                        $("#<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>").val(phoneNumber);
+                        $("#opensearchmember").modal("hide");
+                        $("#transaction_type").val("");
+                        $("#result").fadeOut("fast");
+                        $("#resultSave").fadeOut("fast");
+                        $("#CONTENT_PAYMENT_TYPE").fadeOut("fast");			
+                        $("#CONTENT_SUB_PAYMENT_SYSTEM_CASH").fadeOut("fast");
+                        $("#CONTENT_PAYMENT_SYSTEM").fadeOut("fast");
+                        $("#transaction_type").val("");
+
+                        $("#discountpercentage").val(personDiscPct);
+                        if(personDiscPct > 0){
+                            var getBalanceVal = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val();
+                            personDiscVal = getBalanceVal*(personDiscPct/100);
+                            personDiscVal = formatNumber(personDiscVal);
+                        }else{
+                            personDiscVal = personDiscVal;		    
+                        }
+                        $("#discountnominal").val(personDiscVal);
+
+                        balanceCalc();
+                    }else{
+                        alert("Please select transaction");
+                    }
+
+                });
+            }
+            
+	    
+	    //BUTTON CLOSING BALANCE
+	    $("#btnClosingBalance").click(function(){
+		
+		$("#openclosingbalance").modal("show");
+		$("#CONTENT_CLOSING").hide();
+		$("form#closing").show();
+	    });
+	    
+	    
+	    //BUTTON SEARCH
+	    $("#btnSearch").click(function(){
+		var datasearch = $("#datasearch").val();
+		var loadtype = $(this).data("loadType");
+		
+		loadTransaction(datasearch,loadtype,<%= Command.NONE %>,"<%= cashCashier.getOID() %>","CONTENT_SEARCH");
+	    });
+	    
+	    
+	    //BUTTON SEARCH MEMBER
+	    $("#btnSearchMember").click(function(){
+		var datasearch = $("#searchitem").val();
+		var classType = $("#<%= FrmContactClass.fieldNames[FrmContactClass.FRM_FIELD_CLASS_TYPE] %>").val();
+		var searchtype = $("#searchtype").val();
+		//$("#CONTENT_SEARCH").html("Please wait...").show();
+		searchMember(datasearch,"loadsearchmember",<%= Command.NONE %>,classType,"CONTENT_SEARCH_MEMBER", searchtype);
+		
+		
+	    });
+	    
+	    
+	    //BUTTON PAY
+	    $("#btnPay").click(function(){
+		//var oidPay = $("#btnPay").data("oid");
+		var oidPay = $("#mainBillIdSource").val();
+                //alert(oidPay);
+                //alert(checkedData);
+		loadTransaction(oidPay,"loadpay",<%= Command.NONE %>,0,"CONTENT_PAY");
+	    
+		$("#openpay").modal("show");
+		
+	    });
+	    
+	    
+	    //BUTTON OPEN BILL
+	    $(".btnOpenBill").click(function(){
+		var loadType = $(this).data("loadType");
+		$("#btnOpenReturn").html("<i class='fa fa-check'></i> Open");
+		$("#btnSearch").data("loadType",loadType);
+		$("#commandreturn").val(<%= Command.NONE %>);
+		$("#openbill .modal-dialog").addClass("modal-lg");
+		$("#openbill .input-group").show();
+		if(loadType == "loadsearch"){
+		    $("#openbill .modal-title").html("<b>OPEN BILL</b>");
+		    $("#btnOpen").show();
+		    $("#btnOpenReturn").hide();
+		    
+		}else{
+		    $("#openbill .modal-title").html("<b>RETURN BILL</b>");
+		    $("#btnOpenReturn").show();
+		    $("#btnOpen").hide();
+		    $("#loadtypereturn").val("loadbillreturn");
+		}
+		
+		$("#openbill").modal("show");
+		loadTransaction("",loadType,<%= Command.NONE %>,"<%= cashCashier.getOID() %>","CONTENT_SEARCH");
+	    });
+	    
+	    //BUTTON PRINT
+	    $("#print").click(function(){
+		window.print();
+	    });
+            
+            function moneyFormat(){
+                //$(".money").maskMoney({allowZero:true,decimal:'.'});
+                $('.money').keyup(function(){
+                    var value = $(this).val();
+                    var conValue = parserNumber(value,false,0,'');
+                    $(this).val(conValue);
+                });
+            }
+	    
+	    
+	    //FORM PAYMENT SUBMIT
+	    $("#btnPaySave").click(function(){
+		
+		$("#command").val("<%= Command.SAVE %>");
+		$("#btnPaySave").attr({"value":"Please wait...","disabled":"true"});
+		var datapaircheck = $("#signature").jSignature("getData", "native") ;
+		var signaturpath = $("#SIGNATURE_PATH").val();
+		var cansave = $("#cansave").val();
+		var ccNumber  = $("#<%= FrmCashCreditCard.fieldNames[FrmCashCreditCard.FRM_FIELD_CC_NUMBER] %>").val();
+		var ccName  = $("#<%= FrmCashCreditCard.fieldNames[FrmCashCreditCard.FRM_FIELD_CC_NAME] %>").val();
+		var ccDate  = $(".datePicker").val();
+		var returnCash = $("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val();
+		var masterPayType = $("#MASTER_<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_PAY_TYPE] %>").val();
+		var typeCustomer = $('#member option:selected').text();
+                
+		if(masterPayType == <%= PstCustomBillMain.PAYMENT_TYPE_DEBIT_CARD %>){
+		    if(ccNumber.length == 0){
+			cansave = false;
+		    }else if(ccDate.length == 0){
+			cansave = false;
+		    }
+		}else if(masterPayType == <%= PstCustomBillMain.PAYMENT_TYPE_CREDIT_CARD %>){
+		    if(ccName.length == 0){
+			cansave = false;
+		    }else if(ccNumber.length == 0){
+			cansave = false;
+		    }else if(ccDate.length == 0){
+			cansave = false;
+		    }
+		}else if(signaturpath!= "0" && (typeCustomer=="MEMBER" || typeCustomer=="EMPLOYEE" || typeCustomer=="IN HOUSE GUEST")){
+                    
+                        if(datapaircheck.length == 0){
+                            cansave = false;
+                            alert('salah signature');
+                        }
+                    
+		}
+		
+		
+		
+		if(cansave == false || cansave == "false"){
+		    
+		    $("#btnPaySave").removeAttr("disabled").attr({"value":"Pay"});
+		    $("#resultSave").html("<i class='fa fa-exclamation'></i> Cant't Save").addClass("alert alert-danger").fadeIn("medium");
+		}else{
+		    $.ajax({
+			type    : "POST",
+			url	    : "<%= approot %>/TransactionCashierHandler",
+			data    : $("form#<%= FrmCashPayment.FRM_NAME_CASH_PAYMENT %>").serialize(),
+			cache   : false,
+			dataType : "json",
+			success : function(data){
+		    
+			    $("#btnPaySave").removeAttr("disabled").attr({"value":"Pay"});
+			
+			    //if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %> == "SUCCESS"){
+				
+				$("#CONTENT_PAY").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML]%>).fadeIn("medium");
+				$("#CONTENT_PRINT").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML]%>);
+				window.print();
+				$("#openpay").modal("hide");
+				
+				
+				//$("#resultSave").html("<i class='fa fa-check'></i> Save Success").addClass("alert alert-success").fadeIn("medium");
+				
+			    //}else{
+				//$("#resultSave").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+			    //}
+			
+			    
+			    
+			},
+			error : function(){
+			    //alert("error");
+			}
+		    }).done(function(){
+			alert("Print Success");
+                        $('#mainBillIdSource').val(0);
+			window.location.reload(true);
+			//loadTransactionWithoutDone(0, "", <%= Command.NONE %>, 0, "NONE");
+			//window.print();
+		    });
+		}
+		
+		return false;
+	    });
+	    
+	    //FORM AUTHORIZE
+	    $("form#<%= FrmAppUser.FRM_APP_USER %>").submit(function(){
+		$("#btnAuthorize").attr({"disabled":"true","value":"Please wait..."});
+		var loadtype = $("#loadtypeauthorize").val();
+                //alert(loadtype);
+		var result = "";
+		
+		$.ajax({
+		    type	: "POST",
+		    url		: "<%= approot %>/TransactionCashierHandler",
+		    data	: $(this).serialize(),
+		    cache	: false,
+		    dataType	: "json",
+		    success	: function(data){
+		
+			$("#btnAuthorize").removeAttr("disabled").attr({"value":"Authorize"});
+			result = data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>;
+		    
+			if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %> == "SUCCESS"){
+			    
+			    if(loadtype == "opendiscount"){
+				$("#discountnominal").removeAttr("readonly");
+				$("#discountpercentage").removeAttr("readonly");
+			    }else if(loadtype == "authorizecredit"){
+				var customerId = $("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CUSTOMER_ID] %>").val();
+				searchMember(customerId,"checkmemberlimitnonmember",<%= Command.NONE %>,0,"CONTENT_SUB_PAYMENT_SYSTEM_CASH","");
+			    }else if(loadtype == "authorizereturn"){
+				$.ajax({
+				    type	: "POST",
+				    url		: "<%= approot %>/TransactionCashierHandler",
+				    data	: $("#returnBill").serialize(),
+				    cache	: false,
+				    dataType	: "json",
+				    success	: function(data){
+
+					$("#btnOpenReturn").removeAttr("disabled").html("<i class='fa fa-check'></i> Return");
+					$("#commandreturn").val(<%= Command.SAVE %>);
+					$("#openbill .input-group").hide();
+					$("#openbill .modal-dialog").addClass("modal-lg");
+					$("#CONTENT_SEARCH").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+                                        var checkelement = $('#specialButton').parent().find("#btnOpenReturn").length;
+                                        if (checkelement==0){
+                                           $('#specialButton').parent().append('<button type="submit" id="btnOpenReturn" class="btn btn-primary"><i class="fa fa-check"></i> Return</button>');
+                                     
+                                        }
+                                
+                                    }
+				}).done(function(){
+				    $("#loadtypereturn").val("returnbill");
+				    
+                                    $('#returnAll').change(function() {
+                                        if(this.checked) {
+                                            $('.qtyReturnHelp').each(function(i){
+                                                var id = this.id;
+                                                var nilai = $('#'+id+'').val();
+                                                var ids = id.split("-");
+                                                var no = ids[1];
+                                                $('#qtyTemp-'+no+'').val(nilai);
+                                                
+                                            });
+                                        }else{
+                                            $('.qtyTemp').val('0');
+                                        }    
+                                    });
+				});
+			    }
+
+			    
+			    $("#openauthorize").modal("hide");
+			    
+			}else{
+			    
+			   
+			    $("#<%= FrmAppUser.FRM_APP_USER %>").hide();
+			    $("#CONTENT_AUTHORIZE").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+			    
+			    if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %> == "<%= FRMMessage.getMessage(FRMMessage.MSG_DELETED) %>"){
+				$("#openauthorize").modal("hide");
+				var oid = $("#btnPay").data("oid");
+				loadTransaction(oid,"loadbill",<%= Command.NONE %>,0,"CONTENT_LOAD");
+			    }
+			     if(loadtype == "movebill"){
+                               
+				$("#cancelButton").show();
+				$("#openauthorize .modal-dialog").addClass("modal-lg");
+				
+				$(".<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>").keyup(function(){
+				   var maxNumb = $(this).data("max");
+				   var minNumb = $(this).data("min");
+				   if($(this).val() > maxNumb){
+				       $(this).val(maxNumb);
+				   }else if($(this).val() < minNumb || isNaN($(this).val())){
+				       $(this).val(minNumb);
+				   }
+				});
+			    }else if(loadtype == "cancelbill"){
+				//window.location.reload();
+			    }
+			}
+		    }
+		}).done(function(){
+		    if(result == "SUCCESS" && loadtype == "authorizecredit"){
+			$("#cansave").val("true");
+		    }
+                    moneyFormat();
+		    innerFunction();
+		});
+		
+		return false;
+	    });
+	    function itemChange(){
+		$(".itemChange").keyup(function(){
+		    //GET VALUE
+		    var checkVal = $(this).val();
+		    if(checkVal.length == 0){
+			$(this).val(0);
+		    }
+		    var taxInc = $("#taxInc").val()
+		    var qty = parseFloat($("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>").val());
+		    var itemPrice = parseFloat($("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_PRICE] %>").val());
+		    var discPct = parseFloat($("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_DISC_PCT] %>").val());
+		    var discNominal = parseFloat($("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_DISC] %>").val());
+		    var servicePct = parseFloat($("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_SERVICE_PCT] %>").val());
+		    var taxPct = parseFloat($("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TAX_PCT] %>").val());
+		    
+		    
+		    var totalPrice = qty*itemPrice;
+		    var total = 0;
+		    
+		    if(discPct > 0){
+			discNominal = totalPrice*(discPct/100);
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_DISC] %>").attr({"readonly":"readonly"});
+		    }else{
+			discNominal = discNominal;
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_DISC] %>").removeAttr("readonly");
+		    }
+		    
+		    var afterDiscount = totalPrice-discNominal;
+		    var serviceValue = afterDiscount*(servicePct/100);
+		    var afterService = afterDiscount+serviceValue;
+		    var taxValue = afterDiscount*(taxPct/100);
+		   
+		    if(taxInc == <%= PstBillMain.INC_CHANGEABLE %> || taxInc == <%= PstBillMain.INC_NOT_CHANGEABLE %>){
+			total = afterDiscount;
+		    }else{
+			total = afterDiscount+serviceValue+taxValue;
+		    }
+		    
+		    
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_DISC] %>").val(discNominal);
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_TOTAL_SERVICE] %>").val(serviceValue);
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_TOTAL_TAX] %>").val(taxValue);
+		    $("#afterDiscount").html(formatNumber(afterDiscount));
+		    $("#afterService").html(formatNumber(afterService));
+		    $("#total").html(formatNumber(total));
+		    
+		    
+
+
+
+		});
+	    }
+	    
+	    $("#printnota").click(function(){
+                
+		$("#command").val("<%= Command.NONE %>");
+		$("#loadtype").val("printguest");
+		$.ajax({
+		    type	: "POST",
+		    url		: "<%= approot %>/TransactionCashierHandler",
+		    data	: $("#<%= FrmCashPayment.FRM_NAME_CASH_PAYMENT %>").serialize(),
+		    cache	: false,
+		    dataType	: "json",
+		    success	: function(data){
+			$("#CONTENT_PRINT").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+			$("#CONTENT_PRINT_PREVIEW").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+			$("#openprintpreview").modal("show");
+		    }
+		});
+	    });
+	    
+	    $(".buttonCancel").click(function(){
+		$("#openmovesetguest").modal(modalSetting);
+		var cancelType = $(this).data("loadType");
+		var textConfirm = "";
+		var confirmed = false;
+		var check = false;
+		if(cancelType == "movebill"){
+		    $("#itemmovebill #loadtype").val("movebill");
+		    textConfirm = "Are you sure to move this bill?";
+		    var guestName = $("#itemmovebill #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_GUEST_NAME] %>").val();
+		    var cashbillmain = $("#itemmovebill #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID] %>").val();
+		    var cashcashier = $("#itemmovebill #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_CASHIER_ID] %>").val();
+		    var loadtype = $("#itemmovebill #loadtype").val();
+		    check = true;
+		    var valOid = [];
+		    var valQty = [];			
+		    $("#itemmovebill input[name=<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_DETAIL_ID] %>").each(function(i){
+			valOid[i] = $(this).val();
+			valQty[i] = $("input[name=<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>_"+valOid[i]+"]").val();
+
+		    });
+
+		    $("#<%= FrmBillMain.FRM_NAME_BILL_MAIN %> #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_GUEST_NAME] %>").val(guestName);
+		    $("#<%= FrmBillMain.FRM_NAME_BILL_MAIN %> #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID] %>").val(cashbillmain);
+		    $("#<%= FrmBillMain.FRM_NAME_BILL_MAIN %> #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_CASHIER_ID] %>").val(cashcashier);
+		    $("#<%= FrmBillMain.FRM_NAME_BILL_MAIN %> #<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>").val(valQty);
+		    $("#<%= FrmBillMain.FRM_NAME_BILL_MAIN %> #<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_DETAIL_ID] %>").val(valOid);
+		    $("#<%= FrmBillMain.FRM_NAME_BILL_MAIN %> #loadtype").val(loadtype);
+		    
+		}
+		
+		confirmed = confirm(textConfirm);
+		if(confirmed == true && check == true){
+		    $("#openmovesetguest").modal("show");
+		    $("#FRM_MSG").hide();
+		    $(".buttonCancel").attr({"disabled":"true"});
+		    
+		    $("form#<%= FrmBillMain.FRM_NAME_BILL_MAIN %>").submit(function(){
+			$("#FRM_MSG").hide();
+			$("#btnSaveMove").attr({"disabled":"true"});
+			$.ajax({
+			    type	: "POST",
+			    url		: "<%= approot %>/TransactionCashierHandler",
+			    data	: $(this).serialize(),
+			    cache	: false,
+			    dataType    : "json",
+			    success	: function(data){
+				$("#btnSaveMove").removeAttr("disabled");
+                                $('#mainBillIdSource').val(0);
+				//alert(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>.substr(0,9));
+				if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>.substr(0,9) == "[SUCCESS]"){
+				    window.location = "<%= approot %>/cashier/cashier-transaction.jsp";
+				}else{
+				    $("#FRM_MSG").html("<i class='fa fa-exclamaton'></i> "+data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+				}
+				
+			    }
+			});
+			
+			return false;
+		    });
+		    $(".buttonCancel").removeAttr("disabled");
+		    
+		}else{
+		    //alert("Please select item");
+		}
+	    });
+	    
+	    //OPEN AUTHORIZE DISC
+	    $(".authorizeCancel").click(function(){
+	    
+		var loadtype = $(this).data("loadType");
+		var oid = $(this).data("oid");
+		var modalTitle = $(this).data("title");
+		var confirmed = false;
+		
+		$("#openauthorize .modal-lg").removeClass("modal-lg");
+		$("#cancelButton").hide();
+
+		$("#AUTHORIZE_TITLE").html(modalTitle);
+		$("#loadtypeauthorize").val(loadtype);
+		$("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID] %>_AUTHORIZE").val(oid);
+
+
+		$("#CONTENT_AUTHORIZE").hide();
+		$("#<%= FrmAppUser.FRM_APP_USER %>").show();
+		if(loadtype == "cancelbill"){
+		    confirmed = confirm("Are you sure to cancel all item in this bill?");
+		}else{
+		    confirmed = true;
+		}
+		
+		if(confirmed == true){
+                    checkUser();
+		    $("#openauthorize").modal("show");
+		    $(':input','#<%= FrmAppUser.FRM_APP_USER %>').not(':button, :submit, :reset, :hidden').val('');
+		}$(':input','#<%= FrmAppUser.FRM_APP_USER %>').not(':button, :submit, :reset, :hidden').val('');
+                checkUser();
+                
+		
+	    });
+	    
+	    $('.amountClosing').on('keyup', function() {
+		var sumRp = 0;
+		var sumUsd = 0;
+                var totalRpString="";
+                var totalUsString ="";
+		$("tbody tr").each(function(i){
+                    totalRpString = $(this).find(".amountRp").val();
+                    totalUsString = $(this).find(".amountUsd").val();
+                    
+                    try {
+                        totalRpString = totalRpString.split(",").join("");
+                    }
+                    catch(err) {
+                        totalRpString = "0";
+                    }
+
+                    try {
+                        totalUsString = totalUsString.split(",").join("");
+                    }
+                    catch(err) {
+                        totalUsString = "0";
+                    }
+                    if (totalRpString.length<=0){
+                       totalRpString = "0";
+                    }
+                    if (totalUsString.length<=0){
+                        totalUsString ="0";
+                    }
+                    var totalRp= parseFloat(totalRpString);
+                    var totalUsd = parseFloat(totalUsString);
+                    
+                    sumRp = sumRp + totalRp;
+                    sumUsd = sumUsd + totalUsd;
+                    
+                    var jmlRp = parserNumber(sumRp,false,0,'');
+                    var jmlUs = parserNumber(sumUsd,false,0,'');
+                          
+                    $(this).find(".insert-total").val(jmlRp);
+                    $(this).find(".insert-cost").val(jmlUs);
+                    
+                    
+		});
+		
+		$("#<%=FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_SUBTOTAL1]%>").val(sumRp);
+		$("#<%=FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_SUBTOTAL2]%>").val(sumUsd);
+
+	    });
+	    $("form#closing").submit(function(){
+		$("#closingButton").attr({"disabled":"true"});
+		//$("#closing").hide();
+	    
+		$.ajax({
+		    type	: "POST",
+		    url		: "<%= approot %>/TransactionCashierHandler",
+		    data	: $(this).serialize(),
+		    cache	: false,
+		    dataType	: "json",
+		    success	: function(data){
+                        var temp = data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>;
+                        $("#closingButton").removeAttr("disabled");
+                        if(temp != "FAILED"){
+                            $("#closingButton").hide();
+
+                            $("#CONTENT_CLOSING").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).show();
+                            $("#CONTENT_PRINT").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML]%>);
+                            window.print();
+                            alert("Print Success");
+                            window.location = "<%= approot %>/cashier/cashier-home.jsp";
+                        }else{
+                            $("#closingButton").show();
+                            $("#RESULT_ERROR").html("<div class='row'><div class='box-body'><div class='col-md-12'><i class='fa fa-exclamation'></i> Invalid Supervisor Username or Password!</div></div></div>").fadeIn("medium");
+                        }
+		    }
+		}).done(function(){
+                    
+		    
+		});
+		
+		return false;
+	    });
+	    $("form#returnBill").submit(function(){
+		$("#btnOpenReturn").attr({"disabled":"true"});
+		var loadtypereturn = $("#loadtypereturn").val();
+		
+		if(loadtypereturn == "loadbillreturn"){
+		    $("#openauthorize").modal("show");
+		    $("#CONTENT_AUTHORIZE").hide();
+		    $("#<%= FrmAppUser.FRM_APP_USER %>").show();
+		    $("#loadtypeauthorize").val("authorizereturn");
+		    $(':input','#<%= FrmAppUser.FRM_APP_USER %>').not(':button, :submit, :reset, :hidden').val('');
+                    checkUser();
+		}else{
+		    $.ajax({
+			type	: "POST",
+			url	: "<%= approot %>/TransactionCashierHandler",
+			data	: $(this).serialize(),
+			cache	: false,
+			dataType: "json",
+			success	: function(data){
+
+			    $("#btnOpenReturn").removeAttr("disabled").html("<i class='fa fa-check'></i> Return");
+			    $("#commandreturn").val(<%= Command.SAVE %>);
+			    $("#openbill .input-group").hide();
+			    $("#openbill .modal-dialog").addClass("modal-lg");
+			    $("#CONTENT_SEARCH").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+			    $("#CONTENT_PRINT").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML]%>);
+			    window.print();
+			}
+		    }).done(function(){
+			alert("Print Success");
+			window.location = "<%= approot %>/cashier/cashier-transaction.jsp";
+                        
+		    });
+		}
+		
+		
+		
+		$("#btnOpenReturn").removeAttr("disabled");
+		
+		
+		return false;
+	    });
+	    //-- BUTTON CLICK END
+	    
+	    
+	    //FORMAT NUMBER
+	    function formatNumber(number){
+		return number.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
+	    }
+	    
+	    //FUNCTION BALANCE CALCULATION
+	    function balanceCalc(){
+		var paymentType = $("#MASTER_<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_PAY_TYPE] %>").val();
+		
+		var discountPct = $("#discountpercentage").val();
+		var discountVal = $("#discountnominal").val();
+                discountVal= discountVal.split(",").join("");
+                
+		var service = parseFloat($("#service").val())/100;
+		var tax = parseFloat($("#tax").val())/100;
+		var balance = parseFloat($("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val());
+		var ccCharge = parseFloat($("#ccCharge").val())/100;
+		var taxInc = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val();
+		var paidValue =  parseFloat($("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>").val());
+		var transactionType = $("#transaction_type").val();
+		var cansave = $("#cansave").val();
+		var returnVal = 0;
+		var discount = 0;
+		var serviceVal =0;
+		var taxVal = 0;
+		var ccChargeVal = 0;
+
+		var balanceDisplay = 0;
+		var totalAfterService = 0;
+		var totalAfterTax = 0;
+		var totalCharge = balance;
+
+		if(discountPct.length > 0 && discountPct > 0){
+		   discount = balance*parseFloat(discountPct/100);
+		   balanceDisplay = balance-discount;
+		   $("#discountnominal").val(formatNumber(discount));
+		   $("#discountnominal").attr({"readonly":"readonly"});
+
+		}else{
+		    $("#discountpercentage").val(0);
+
+		    var check = $("#discountnominal").val();
+                    check= check.split(",").join("");
+		    if(check.length > 0){
+			discountVal = parseFloat(check)
+			discount = parseFloat(check);
+		    }else{
+			discountVal = 0;
+			discount = 0;
+		    }
+		    balanceDisplay = balance-discountVal;
+		    //$("#discountnominal").val(discount);
+		    $("#discountnominal").removeAttr("readonly");
+		}
+
+		serviceVal = balanceDisplay*service;
+		totalAfterService = balanceDisplay+serviceVal;
+
+		taxVal = balanceDisplay*tax;
+		totalAfterTax = balanceDisplay+taxVal+serviceVal;
+
+		
+
+		if(taxInc == <%= PstBillMain.INC_CHANGEABLE %> || taxInc == <%= PstBillMain.INC_NOT_CHANGEABLE %>){
+		    ccChargeVal = balanceDisplay*ccCharge;
+		    totalCharge = balanceDisplay+ccChargeVal;
+		    $("#tempCostumBalance").val(balanceDisplay);
+		    $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val(balanceDisplay);
+		}else{
+		    ccChargeVal = totalAfterTax*ccCharge;
+		    totalCharge = totalAfterTax+ccChargeVal;
+		    $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val(totalAfterTax);
+		    $("#tempCostumBalance").val(totalAfterTax);
+		}
+
+
+
+		$("#balance").html(formatNumber(balanceDisplay)).show();
+
+		$("#serviceVal").html(formatNumber(serviceVal));
+		$("#totalAfterService").html(formatNumber(totalAfterService));
+
+		$("#taxVal").html(formatNumber(taxVal));
+		$("#totalAfterTax").html(formatNumber(totalAfterTax));
+
+		//$("#tempCostumBalance").val(totalAfterTax);
+		$("#ccChargeVal").html(formatNumber(ccChargeVal));
+		$("#creditcardcharge").val(ccChargeVal);
+		$("#totalCharge").html(formatNumber(totalCharge));
+		
+		
+		if(paymentType == <%= PstCustomBillMain.PAYMENT_TYPE_FOC %>){
+		    $("#info").html("RETURN");
+		    $("#cansave").val("true");
+		    $("#nominal").html(0);
+		    $("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(0);
+		}else{
+		    if(paidValue-totalCharge >= 0){
+			returnVal = paidValue-totalCharge;
+			$("#info").html("RETURN");
+			$("#cansave").val("true");
+			$("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(returnVal);
+		    }else{
+			returnVal = totalCharge-paidValue;
+			$("#info").html("TOTAL");
+			if(transactionType != 0){
+			    $("#cansave").val(cansave);
+			}else{
+			    $("#cansave").val("false");
+			}
+			$("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(0)
+		    }
+		    $("#nominal").html(formatNumber(returnVal));
+		}
+		
+	    }
+            
+            //FUNCTION BALANCE CALCULATION 2
+            function balanceCalc2(){
+		var paymentType = $("#MASTER_<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_PAY_TYPE] %>").val();
+		
+		var discountPct = $("#discountpercentage").val();
+		var discountVal = $("#discountnominal").val();
+                discountVal= discountVal.split(",").join("");
+		
+                var service = parseFloat($("#service").val())/100;
+		var tax = parseFloat($("#tax").val())/100;
+		var balance = parseFloat($("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val());
+		var ccCharge = parseFloat($("#ccCharge").val())/100;
+		var taxInc = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val();
+		var paidValue =  parseFloat($("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>").val());
+		var transactionType = $("#transaction_type").val();
+		var cansave = $("#cansave").val();
+		var returnVal = 0;
+		var discount = 0;
+		var serviceVal =0;
+		var taxVal = 0;
+		var ccChargeVal = 0;
+
+		var balanceDisplay = 0;
+		var totalAfterService = 0;
+		var totalAfterTax = 0;
+		var totalCharge = balance;
+
+		if(discountPct.length > 0 && discountPct > 0){
+		   discount = balance*parseFloat(discountPct/100);
+		   balanceDisplay = balance-discount;
+		   $("#discountnominal").val(formatNumber(discount));
+		   $("#discountnominal").attr({"readonly":"readonly"});
+
+		}else{
+		    $("#discountpercentage").val(0);
+
+		    var check = $("#discountnominal").val();
+                    check= check.split(",").join("");
+		    if(check.length > 0){
+			discountVal = check;
+			discount = parseFloat(check);
+		    }else{
+			discountVal = 0;
+			discount = 0;
+		    }
+                   
+		    balanceDisplay = balance-discountVal;
+		    //$("#discountnominal").val(discount);
+		    //$("#discountnominal").removeAttr("readonly");
+		}
+
+		serviceVal = balanceDisplay*service;
+		totalAfterService = balanceDisplay+serviceVal;
+
+		taxVal = balanceDisplay*tax;
+		totalAfterTax = balanceDisplay+taxVal+serviceVal;
+
+		
+
+		if(taxInc == <%= PstBillMain.INC_CHANGEABLE %> || taxInc == <%= PstBillMain.INC_NOT_CHANGEABLE %>){
+		    ccChargeVal = balanceDisplay*ccCharge;
+		    totalCharge = balanceDisplay+ccChargeVal;
+		    $("#tempCostumBalance").val(balanceDisplay);
+		    $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val(balanceDisplay);
+		}else{
+		    ccChargeVal = totalAfterTax*ccCharge;
+		    totalCharge = totalAfterTax+ccChargeVal;
+		    $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val(totalAfterTax);
+		    $("#tempCostumBalance").val(totalAfterTax);
+		}
+
+
+
+		$("#balance").html(formatNumber(balanceDisplay)).show();
+
+		$("#serviceVal").html(formatNumber(serviceVal));
+		$("#totalAfterService").html(formatNumber(totalAfterService));
+
+		$("#taxVal").html(formatNumber(taxVal));
+		$("#totalAfterTax").html(formatNumber(totalAfterTax));
+
+		//$("#tempCostumBalance").val(totalAfterTax);
+		$("#ccChargeVal").html(formatNumber(ccChargeVal));
+		$("#creditcardcharge").val(ccChargeVal);
+		$("#totalCharge").html(formatNumber(totalCharge));
+		
+		
+		if(paymentType == <%= PstCustomBillMain.PAYMENT_TYPE_FOC %>){
+		    $("#info").html("RETURN");
+		    $("#cansave").val("true");
+		    $("#nominal").html(0);
+		    $("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(0);
+		}else{
+		    if(paidValue-totalCharge >= 0){
+			returnVal = paidValue-totalCharge;
+			$("#info").html("RETURN");
+			$("#cansave").val("true");
+			$("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(returnVal);
+		    }else{
+			returnVal = totalCharge-paidValue;
+			$("#info").html("TOTAL");
+			if(transactionType != 0){
+			    $("#cansave").val(cansave);
+			}else{
+			    $("#cansave").val("false");
+			}
+			$("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(0)
+		    }
+		    $("#nominal").html(formatNumber(returnVal));
+		}
+		
+	    }
+	    
+    
+	    //FUNCTION LOAD THE FUNCTION
+	    function innerFunction(){
+
+		
+		itemChange();
+		
+		$("form#<%= FrmBillDetail.FRM_NAME_BILL_DETAIL %>").submit(function(){
+		   $("#btnSaveBiillDetail").attr({"disabled":"true"}).html("Please Wait...");
+		   $.ajax({
+			type	: "POST",
+			url	: "<%= approot %>/TransactionCashierHandler",
+			data	: $(this).serialize(),
+			cache	: false,
+			dataType: "json",
+			success	: function(data){
+			    $("#btnSaveBillDetail").removeAttr("disabled").html("Save");
+			    
+			    if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %> != "FAILED"){
+				$("#openauthorize").modal("hide");
+				loadTransaction(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>,"loadbill",<%= Command.NONE %>,0,"CONTENT_LOAD");
+			    }else{
+				$("#CONTENT_AUTHORIZE").html("FAILED");
+			    }
+			}
+		    });
+		    
+		    return false;
+		});
+		
+		$("form#<%= FrmBillMain.FRM_NAME_BILL_MAIN %>_CANCEL").submit(function(){
+		   $("#btnSaveBiillDetail").attr({"disabled":"true"}).html("Please Wait...");
+		   $.ajax({
+			type	: "POST",
+			url	: "<%= approot %>/TransactionCashierHandler",
+			data	: $(this).serialize(),
+			cache	: false,
+			dataType: "json",
+			success	: function(data){
+			    $("#btnSaveBillDetail").removeAttr("disabled").html("Save");
+			    
+			    if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %> != "FAILED"){
+				$("#openauthorize").modal("hide");
+			    	$("#CONTENT_AUTHORIZE").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+				window.location.reload();
+			    }else{
+				$("#CONTENT_AUTHORIZE").html("FAILED");
+			    }
+			}
+		    });
+		    
+		    return false;
+		});
+		
+		//return returnFunction;
+	    };
+	    
+	   //FUNTION LOAD PAGE
+	   function loadTransactionWithoutDone(oidTransaction, loadtype, command, cashier, elementLoad){
+		var costumBalance = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val();
+		var balanceVal = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val();
+		var taxInc = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val();
+	       if(loadtype != "loadbill"){
+		   $("#"+elementLoad).html("Please wait...").fadeIn("medium");
+	       }
+	       
+	       $.ajax({
+		    type    : "POST",
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    data    : {
+			"loadtype":loadtype,
+			"<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_CASH_BILL_MAIN_ID] %>":oidTransaction,
+			"command":command,
+			"cashier":cashier,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>":costumBalance,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE]%>":balanceVal,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>":taxInc
+		    },
+		    dataType : "json",
+		    cache   : false,
+		    success : function(data){
+			
+			if(loadtype == "loadbill"){
+			    $("#CONTENT_ANIMATE_CHECK").fadeOut("medium");
+			    $("#CONTENT_TOTAL").fadeIn("medium");
+			}
+			$("#"+elementLoad).html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium")
+			$("#nominal").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_DISPLAY_TOTAL] %>).show();
+			$("#info").html("TOTAL");
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>);
+		    },
+		    error : function(){
+			//alert("error");
+		    }
+		}).done(function(){
+		    
+		    
+		    
+		    //OPEN MODAL TO SEARCH MEMBER OF CREDIT
+		    $("#btnOpenSearchMember").click(function(){
+			var searchtype = $("#searchtype").val();
+			var classType = $("#<%= FrmContactClass.fieldNames[FrmContactClass.FRM_FIELD_CLASS_TYPE] %>").val();
+			var member = $("#member").val();
+			$("#buttonInHouseGuest").hide();
+			if(searchtype == "guest"){
+			    $("#btnGuest").attr({"disabled":true});
+			    $("#btnTravelagent").removeAttr("disabled");
+			}else{
+			    $("#btnTravelagent").attr({"disabled":true});
+			    $("#btnGuest").removeAttr("disabled");
+			}
+			
+			$("#opensearchmember").modal("show");
+			
+			if(member.indexOf("#") != -1){
+			    $("#buttonInHouseGuest").show();
+			}
+			searchMember("","loadsearchmember",<%= Command.NONE %>,classType,"CONTENT_SEARCH_MEMBER",searchtype);
+		    });
+		    
+		    
+		    //MASTER PAYMENT TYPE CHANGE
+		    $("#MASTER_<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_PAY_TYPE] %>").change(function(){
+			$("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(0);
+			//alert("MASTER CHANGED");
+			$("#result").fadeOut("fast");
+			$("#resultSave").fadeOut("fast");
+			$("#CONTENT_PAYMENT_TYPE").fadeOut("fast");
+			
+			if($(this).val() == <%= PstCustomBillMain.PAYMENT_TYPE_FOC %>){
+			    $("#cansave").val("true");
+			}
+			var balance = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val();
+			paymentSystem($(this).val(),"loadlistpayment",<%= Command.NONE %>,<%= cashCashier.getOID() %>,"CONTENT_SUB_PAYMENT_SYSTEM_CASH");
+
+		    });
+		    
+		    
+
+		});
+		
+		
+	    }
+	   
+	   function loadTransaction(oidTransaction, loadtype, command, cashier, elementLoad){
+		var costumBalance = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val();
+		var balanceVal = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val();
+		var taxInc = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val();
+	       if(loadtype != "loadbill"){
+		   $("#"+elementLoad).html("Please wait...").fadeIn("medium");
+	       }
+	       
+	       $.ajax({
+		    type    : "POST",
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    dataType : "json",
+		    data    : {
+			"loadtype":loadtype,
+			"<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_CASH_BILL_MAIN_ID] %>":oidTransaction,
+			"command":command,
+			"cashier":cashier,
+			"<%=BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE]%>":costumBalance,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE]%>":balanceVal,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>":taxInc
+		    },
+				
+		    cache   : false,
+		    success : function(data){
+			//alert(loadtype);
+			if(loadtype == "loadbill"){
+			    $("#CONTENT_ANIMATE_CHECK").fadeOut("medium");
+			    $("#CONTENT_TOTAL").fadeIn("medium");
+			}
+			
+			if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %> == "SPECIAL"){
+			    
+			    $("#CONTENT_INFO").hide();
+			    $("#btnPaySave").hide();
+                            $('#btnPayFinger').hide();
+			    $("#printnota").hide();
+			    $("#"+elementLoad).html("<i class='fa fa-exclamation'></i> Can not make the payment because the price of special items has not been entered. <br>Please give a special item price first").fadeIn("medium");
+			}else{
+			    $("#CONTENT_INFO").show();
+			    $("#btnPaySave").show();
+                            $('#btnPayFinger').show();
+			    $("#printnota").show();
+			    $("#"+elementLoad).html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+			}
+			
+			$("#nominal").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_DISPLAY_TOTAL] %>).show();
+			$("#info").html("TOTAL");
+			
+			$("#ccCharge").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>);
+			$("#totalCharge").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_DISPLAY_TOTAL] %>);
+			
+			var ccChargeVal = parseFloat(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>)*(parseFloat(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>)/100);
+			$("#ccChargeVal").html(formatNumber(ccChargeVal));
+			$("#creditcardcharge").val(ccChargeVal);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>);
+		    },
+		    error : function(){
+			//alert("error");
+		    }
+		}).done(function(){
+		    
+		    var grandTotal = $("#grandTotalData").val();
+                    //alert(grandTotal);
+		    $("#grandTotal").html(grandTotal);
+		    
+                    moneyFormat();
+		    
+		    if(loadtype == "loadpay"){
+			
+			var $sigdiv = $("#signature").jSignature({
+				'background-color': 'transparent',
+				'decor-color': 'transparent',
+				'height':'112'
+			});
+			$("#signature").change(function(){
+			    var datapair = $(this).jSignature("getData", "default") ;
+			    //var datapaircheck = $sigdiv.jSignature("getData", "native") ;
+			    $("#IMAGE_STRING").val(datapair);
+			});
+			$("#resetsignature").click(function(){
+			   $sigdiv.jSignature("reset"); 
+			});
+                        
+                        var typeCustomer = $('#member option:selected').text();
+                        
+                        if(typeCustomer=="MEMBER" || typeCustomer=="EMPLOYEE" || typeCustomer=="IN HOUSE GUEST"){
+			    $("#signatureArea").fadeIn("medium");
+			}else{
+			    $("#signatureArea").fadeOut("fast");
+			}
+                        
+		    }else if (loadtype=="loadsearch" || loadtype=="loadsearchreturn"){
+                       tableNav();
+                       selectBillToOpen(); 
+                       searchBillToReturn();
+                       textual2();
+                       datasearch();
+                    }else if (loadtype=="loadbill"){
+                       textual3();
+                    }
+		    
+		    //MEMBER TYPE CHANGE
+		
+		    $("#member").change(function(){
+                        //alert('test');
+			$("#result").fadeOut("fast");
+			$("#resultSave").fadeOut("fast");
+			$("#CONTENT_PAYMENT_TYPE").fadeOut("fast");			
+			$("#CONTENT_SUB_PAYMENT_SYSTEM_CASH").fadeOut("fast");
+			$("#CONTENT_PAYMENT_SYSTEM").fadeOut("fast");
+			$("#transaction_type").val("");
+			$("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CUSTOMER_ID] %>").val("");
+                        var typeCustomer = $('#member option:selected').text();
+
+			if(typeCustomer=="MEMBER" || typeCustomer=="EMPLOYEE" || typeCustomer=="IN HOUSE GUEST"){
+			    $("#signatureArea").fadeIn("medium");
+			}else{
+			    $("#signatureArea").fadeOut("fast");
+			}
+			loadTransactionWithoutDone($(this).val(),"loadsubmembertype",<%= Command.NONE %>,<%= cashCashier.getOID() %>,"CONTENT_SUB_PAYMENT_SYSTEM");
+		    });
+		   
+
+		    //TRANSACTION TYPE CHANGE
+		    $("#transaction_type").change(function(){
+			
+			$("#result").fadeOut("fast");
+			$("#CONTENT_SUB_PAYMENT_SYSTEM_CASH").fadeOut("fast");
+			$("#CONTENT_PAYMENT_SYSTEM").fadeOut("fast");
+			$("#CONTENT_PAYMENT_TYPE").fadeOut("fast");
+			var searchtype = $("#searchtype").val();
+			var member = $("#member").val();
+                        var memberText = $("#member option:selected").text();
+			var customerId = $("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CUSTOMER_ID] %>").val();
+			var billMain = $("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_CASH_BILL_MAIN_ID] %>").val();
+			//alert("test 1");
+			if($(this).val() == 1 && member.length > 0){
+			   //alert("test 2");
+			   if(memberText=="NONE"){
+			       alert("Only for customers as a member");
+			   }else{
+                               //alert("test 3");
+			       if(customerId.length != ""){
+				   if(memberText == "CUSTOMER"){
+				       $("#loadtypeauthorize").val("authorizecredit");
+                                       $("#spvFinger").val('');
+                                       checkUser();
+				       $("#openauthorize").modal("show");
+                                       
+				       $("#CONTENT_AUTHORIZE").hide();
+                                        $("#<%= FrmAppUser.FRM_APP_USER %>").show();
+				       $(':input','#<%= FrmAppUser.FRM_APP_USER %>').not(':button, :submit, :reset, :hidden').val('');
+                                       checkUser();
+				   }else if(member.indexOf("#") != -1){
+                                       //alert("test 4");
+				       searchMember(customerId,"checkcreditinhouseguest",<%= Command.NONE %>,0,"CONTENT_SUB_PAYMENT_SYSTEM_CASH","");
+				   }else{
+                                       //alert("test 5");
+				       searchMember(customerId,"checkmemberlimit",<%= Command.NONE %>,0,"CONTENT_SUB_PAYMENT_SYSTEM_CASH", searchtype);
+				   }
+			       }else{
+				   alert("Please select customer");
+				   $(this).val("");
+			       }
+			   }
+			   
+			}else if(($(this).val() == 0 || $(this).val() == 2) && member.length > 0){
+			    if(member == 0){
+                                //alert('test');
+                                //if (member==0 && $(this).val()==2){
+                                //    alert("Can't get FOC");
+                                //}else{
+                                //    loadTransactionWithoutDone($(this).val(),"loadpayment",<%= Command.NONE %>,billMain,"CONTENT_PAYMENT_SYSTEM");
+                                //}
+				loadTransactionWithoutDone($(this).val(),"loadpayment",<%= Command.NONE %>,billMain,"CONTENT_PAYMENT_SYSTEM");
+			    }else{
+				if(customerId.length != ""){
+				   loadTransactionWithoutDone($(this).val(),"loadpayment",<%= Command.NONE %>,billMain,"CONTENT_PAYMENT_SYSTEM");
+				}else{
+				   alert("Please select customer");
+				   $(this).val("");
+				}
+			    }
+			    
+			}else{
+			    alert("Please select customer type");
+			    $(this).val("");
+			}
+
+		    });
+		    
+		    //DISC, TAX, SERVICE CHANGED
+		    $(".charge").keyup(function(){
+			balanceCalc();
+		    });
+                    
+                    $(".chargeImp").keyup(function(){
+			balanceCalc2();
+		    });
+		
+		
+		
+		    //DISCOUNT PCT CHANGED
+		    $("#discountpercentage").keyup(function(){
+			var thisVal = parseFloat($(this).val());
+			if(thisVal == 0){
+			    $("#discountnominal").val(0);
+			}
+			balanceCalc();
+		    });
+		    
+		    //AUTHORIZE
+		    $(".authorize").click(function(){
+	    
+			var loadtype = $(this).data("loadType");
+                        //alert(loadtype);
+                        if (loadtype=="edititem" || loadtype=="delitem" ){
+                            var oid = $(this).data("oid"); 
+                        }else{
+                            var oid = $('#mainBillIdSource').val();
+                        }
+
+                        
+			var modalTitle = $(this).data("title");
+			var confirmed = true;
+
+			$("#openauthorize .modal-lg").removeClass("modal-lg");
+			$("#cancelButton").hide();
+
+			$("#AUTHORIZE_TITLE").html(modalTitle);
+			$("#loadtypeauthorize").val(loadtype);
+			$("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID] %>_AUTHORIZE").val(oid);
+
+
+			$("#CONTENT_AUTHORIZE").hide();
+			$("#<%= FrmAppUser.FRM_APP_USER %>").show();
+			
+
+			if(confirmed == true){
+			    $("#openauthorize").modal("show");
+			    $(':input','#<%= FrmAppUser.FRM_APP_USER %>').not(':button, :submit, :reset, :hidden').val('');
+                            checkUser();
+			}
+
+		    });
+		    
+		    //OPEN MODAL TO SEARCH MEMBER OF CREDIT
+		    $("#btnOpenSearchMember").click(function(){
+			var classType = $("#<%= FrmContactClass.fieldNames[FrmContactClass.FRM_FIELD_CLASS_TYPE] %>").val();
+			var searchtype = $("#searchtype").val();
+			var member = $("#member").val();
+			$("#buttonInHouseGuest").hide();
+			if(searchtype == "guest"){
+			    $("#btnGuest").attr({"disabled":true});
+			    $("#btnTravelagent").removeAttr("disabled");
+			}else{
+			    $("#btnTravelagent").attr({"disabled":true});
+			    $("#btnGuest").removeAttr("disabled");
+			}
+			
+			
+			$("#opensearchmember").modal("show");
+			if(member.indexOf("#") != -1){
+			    $("#buttonInHouseGuest").show();
+			}
+			searchMember("","loadsearchmember",<%= Command.NONE %>,classType,"CONTENT_SEARCH_MEMBER",searchtype);
+		    });
+		    
+		    $(".btnsearchtype").click(function(){
+			var searchtype = $(this).data("searchType");
+			var classType = $("#<%= FrmContactClass.fieldNames[FrmContactClass.FRM_FIELD_CLASS_TYPE] %>").val();
+			$(".btnsearchtype").removeAttr("disabled");
+			$("#searchtype").val(searchtype);
+			$(this).attr({"disabled":true});
+			//alert(searchtype);
+			searchMember("","loadsearchmember",<%= Command.NONE %>,classType,"CONTENT_SEARCH_MEMBER",searchtype);
+		    });
+		    innerFunction();
+		});
+		
+	    }
+	    
+	    
+	    function paymentSystem(oidTransaction, loadtype, command, cashier, elementLoad){
+		var costumBalance = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val();
+		var balanceVal = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val();
+		var taxInc = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val();
+	       if(loadtype != "loadbill"){
+		   $("#"+elementLoad).html("Please wait...").fadeIn("medium");
+	       }
+	       
+	       $.ajax({
+		    type    : "POST",
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    dataType : "json",
+		    data    : {
+			"loadtype":loadtype,
+			"<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_CASH_BILL_MAIN_ID] %>":oidTransaction,
+			"command":command,
+			"cashier":cashier,
+                        "cardReader": <%= cardReader%>,
+			"<%=BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE]%>":costumBalance,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE]%>":balanceVal,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>":taxInc
+		    },
+				
+		    cache   : false,
+		    success : function(data){
+			
+			if(loadtype == "loadbill"){
+			    $("#CONTENT_ANIMATE_CHECK").fadeOut("medium");
+			    $("#CONTENT_TOTAL").fadeIn("medium");
+			}
+			$("#"+elementLoad).html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+			$("#nominal").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_DISPLAY_TOTAL] %>).show();
+			$("#info").html("TOTAL");
+			
+			$("#ccCharge").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>);
+			$("#totalCharge").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_DISPLAY_TOTAL] %>);
+			
+			var ccChargeVal = parseFloat(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>)*(parseFloat(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>)/100);
+			$("#ccChargeVal").html(formatNumber(ccChargeVal));
+			$("#creditcardcharge").val(ccChargeVal);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>);
+		    },
+		    error : function(){
+			alert("error");
+		    }
+		}).done(function(){
+		    
+		    //PAYMENT TYPE CHANGE
+		    $("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_PAY_TYPE] %>").change(function(){
+			
+			//alert("SUB CHANGED");
+			$("#result").fadeOut("fast");
+			$("#resultSave").fadeOut("fast");
+			var balance = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val();
+			subPaymentSystem($(this).val(),"loadsubpayment",<%= Command.NONE %>,<%= cashCashier.getOID() %>,"CONTENT_PAYMENT_TYPE");
+
+		    });
+		});
+		
+	    }
+	    
+	    function subPaymentSystem(oidTransaction, loadtype, command, cashier, elementLoad){
+		var costumBalance = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val();
+		var balanceVal = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val();
+		var taxInc = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val();
+	       if(loadtype != "loadbill"){
+		   $("#"+elementLoad).html("Please wait...").fadeIn("medium");
+	       }
+	       
+	       $.ajax({
+		    type    : "POST",
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    dataType : "json",
+		    data    : {
+			"loadtype":loadtype,
+			"<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_CASH_BILL_MAIN_ID] %>":oidTransaction,
+			"command":command,
+			"cashier":cashier,
+                        "cardReader": <%=cardReader%>,
+			"<%=BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE]%>":costumBalance,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE]%>":balanceVal,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>":taxInc
+		    },
+				
+		    cache   : false,
+		    success : function(data){
+			
+			if(loadtype == "loadbill"){
+			    $("#CONTENT_ANIMATE_CHECK").fadeOut("medium");
+			    $("#CONTENT_TOTAL").fadeIn("medium");
+			}
+			$("#"+elementLoad).html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+			$("#nominal").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_DISPLAY_TOTAL] %>).show();
+			$("#info").html("TOTAL");
+			
+			$("#ccCharge").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>);
+			$("#totalCharge").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_DISPLAY_TOTAL] %>);
+			
+			var ccChargeVal = parseFloat(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>)*(parseFloat(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>)/100);
+			$("#ccChargeVal").html(formatNumber(ccChargeVal));
+			$("#creditcardcharge").val(ccChargeVal);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>);
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>);
+		    },
+		    error : function(){
+			//alert("error");
+		    }
+		}).done(function(){
+		    $(".datePicker").datepicker({
+			format: 'yyyy-mm-dd',
+			    
+		    }).on("changeDate", function (ev) {
+			$(this).datepicker('hide');
+		    });
+		    
+                    moneyFormat();
+		    
+		    $(".getaccount").on("change",function(e){
+			var material = $(".getaccount").val();
+			//$(this).removeClass("getaccount");
+			var splitMaterial = material.split("^");
+			var materialNumber = splitMaterial[0].replace("%B","").trim();
+			materialNumber = materialNumber.substring(4,materialNumber.length);
+                        materialNumber = "xxxx" + materialNumber
+			var materialName = splitMaterial[1].trim();
+			var materialExpDate = splitMaterial[2];
+			var dateNow = new Date();
+			
+			var year = dateNow.getFullYear().toString();
+			var limitGetNumber = year.length-2;
+			//alert(limitGetNumber);
+			var displayExpDate = year.substring(0,limitGetNumber)+""+materialExpDate.substring(0,2)+"-"+materialExpDate.substring(2,4)+"-01";
+			//var displayExpDate = year.toString();
+			$("#<%= FrmCashCreditCard.fieldNames[FrmCashCreditCard.FRM_FIELD_CC_NUMBER] %>").val(materialNumber);
+			$('.datepicker').val(displayExpDate);
+			$('.datepicker').datepicker('update', displayExpDate);
+			$(this).val(materialName);
+			$(this).attr({"readonly":"readonly"});
+			//$(this).addClass("getaccount");
+		    });
+		    $(".getaccountDebit").on("change",function(e){
+			var materialDebit = $(".getaccountDebit").val();
+			//$(this).removeClass("getaccountDebit");
+			var splitMaterialDebit = materialDebit.split("^");
+			var materialNumberDebit = splitMaterialDebit[0].replace("%B","").trim();
+			materialNumberDebit = materialNumberDebit.substring(4,materialNumberDebit.length);
+                        materialNumberDebit = "xxxx" + materialNumberDebit;
+			var materialExpDateDebit = splitMaterialDebit[2];
+			
+			var dateNow = new Date();
+			
+			var year = dateNow.getFullYear().toString();
+			var limitGetNumber = year.length-2;
+			//alert(limitGetNumber);
+			var displayExpDate = year.substring(0,limitGetNumber)+""+materialExpDateDebit.substring(0,2)+"-"+materialExpDateDebit.substring(2,4)+"-01";
+			//var displayExpDate = year.toString();
+			$('.datepicker').val(displayExpDate);
+			$('.datepicker').datepicker('update', displayExpDate);
+			$(this).val(materialNumberDebit);
+			$(this).attr({"readonly":"readonly"});
+			//$(this).addClass("getaccount");
+			//alert(materialExpDateDebit);
+		    });
+		    
+		    $("#ccReScan").click(function(){
+			$(".getaccount").removeAttr("readonly").val('');
+			$('.datepicker').val('');
+			$('.datepicker').datepicker('update', '');
+			$("#<%= FrmCashCreditCard.fieldNames[FrmCashCreditCard.FRM_FIELD_CC_NUMBER] %>").val('');
+		    });
+		    $("#debitReScan").click(function(){
+			$(".getaccountDebit").removeAttr("readonly").val('');
+			$('.datepicker').val('');
+			$('.datepicker').datepicker('update', '');
+		    });
+		    var paidVal = parseFloat($("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>").val());
+		    
+		    var ccCharge = parseFloat($("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>").val());
+		    var balanceVal = parseFloat($("#tempCostumBalance").val());
+		    var balanceVal2 = parseFloat($("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val());
+		    var taxInc = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val();
+		    var discPct = parseFloat($("#discountpercentage").val());
+		    var discNominal = parseFloat($("#discountnominal").val());
+		    var paymentType = $("#MASTER_<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_PAY_TYPE] %>").val();
+		    
+		    if(discPct > 0){
+			balanceVal2 = balanceVal2-(balanceVal2*(discPct/100));
+		    }else{
+			balanceVal2 = balanceVal2-discNominal;
+		    }
+		    
+		    
+		    $("#ccCharge").val(ccCharge);
+		    var ccChargeVal = 0;
+		    if(taxInc == 0 || taxInc == 2){
+			
+			ccChargeVal = balanceVal2*(ccCharge/100);
+			var totalCharge = (balanceVal2)+ccChargeVal;
+		    }else{
+			
+			ccChargeVal = balanceVal*(ccCharge/100);
+			var totalCharge = (balanceVal)+ccChargeVal;
+		    }
+		    
+		    var returnVal = 0;
+		    $("#ccChargeVal").html(formatNumber(ccChargeVal));
+		    $("#creditcardcharge").val(ccChargeVal);
+		    $("#totalCharge").html(formatNumber(totalCharge));
+		    
+		    if(paymentType != <%= PstCustomBillMain.PAYMENT_TYPE_FOC %>){
+			if((paidVal-totalCharge) >= 0){
+			    returnVal = paidVal-totalCharge;
+			    $("#nominal").html(formatNumber(returnVal));
+			    $("#info").html("RETURN");
+			    $("#cansave").val("true");
+			}else{
+			    returnVal = totalCharge-paidVal;
+			    $("#nominal").html(formatNumber(returnVal));
+			    $("#info").html("TOTAL");
+			    $("#cansave").val("false");
+			}
+		    }else{
+			
+			$("#nominal").html(formatNumber(0));
+			$("#info").html("RETURN");
+			$("#cansave").val("true");
+		    }
+		    
+		    
+		    $(".calc").keyup(function(){
+			
+			if($(this).val().length == 0 || $(this).val() == 0){
+			    paidVal = 0;
+			}else{
+			    //paidVal = parseFloat($(this).val());
+                            paidVal = $(this).val();
+                            paidVal = paidVal.split(",").join("");
+                            
+			}
+			$("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>").val(paidVal);
+			
+			ccCharge = parseFloat($("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>").val());
+			
+			balanceVal = parseFloat($("#tempCostumBalance").val());
+			totalCharge = balanceVal+ccChargeVal;
+		
+			if(paymentType == <%= PstCustomBillMain.PAYMENT_TYPE_FOC %>){
+			    $("#cansave").val("true");
+			    $("#info").html("CHANGES");
+			    $("#nominal").val(0);
+			    $("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(0)
+			}else{
+			    if((paidVal-totalCharge) >= 0){
+				returnVal = paidVal-totalCharge;
+				$("#nominal").html(formatNumber(returnVal));
+				$("#info").html("CHANGES");
+				$("#cansave").val("true");
+				$("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(returnVal);
+			    }else{
+				returnVal = totalCharge-paidVal;
+				$("#nominal").html(formatNumber(returnVal));
+				$("#info").html("TOTAL");
+				$("#cansave").val("false");
+				$("#<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>").val(0);
+			    }
+			}
+			
+		    });
+		   innerFunction();
+		});
+		
+	    }
+	    
+	    function searchMember(oidTransaction, loadtype, command, cashier, elementLoad, searchType){
+		var costumBalance = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>").val();
+		var balanceVal = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>").val();
+		var taxInc = $("#<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>").val();
+		$.ajax({
+		    type    : "POST",
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    data    : {
+			"loadtype":loadtype,
+			"<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_CASH_BILL_MAIN_ID] %>":oidTransaction,
+			"command":command,
+			"cashier":cashier,
+			"<%=BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE]%>":costumBalance,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE]%>":balanceVal,
+			"<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>":taxInc,
+			"searchType":searchType
+		    },
+		    dataType : "json",
+		    cache   : false,
+		    success : function(data){
+			
+			if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %> == "FAILED"){
+			    $("#"+elementLoad).html("<div class='row'><div class='box-body'><div class='col-mod-12'>Your credits have exceeded credits limit or expired</div></div></div>").fadeIn("medium");
+			    $("#cansave").val("false");
+			}else{
+			    if(loadtype == "checkmemberlimitnonmember" || loadtype=="checkcreditinhouseguest"){
+				$("#cansave").val("true");
+			    }else{
+				$("#cansave").val("false");
+			    }
+			    
+			    $("#"+elementLoad).html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+			    
+			}
+			
+		    },
+		    error : function(){
+			//alert("error");
+		    }
+                }).done(function(){
+                    if (loadtype="checkmemberlimitnonmember"){
+                        $('#ctOpenListCustomer').click(function(){
+                            loadCtCustomer();
+                        });
+                    }
+                    clickSelectGuest();
+                    catchKey();
+
+		});
+	    }
+	    
+	    $(".additem").submit(function(){
+                var locationId = $('#locationBillIdSource').val();
+                //set location sesuai cash bill main
+                $('#openitemlist #LOCATION_ID').val(locationId);
+                //hidden combobox location
+                $('#openitemlist #LOCATION_ID').css('display','none');
+                //submit form
+		$("#openitemlist").modal("show");
+                $('#openitemlist #searchitemlocation').trigger("click");
+                
+		$("#CONTENT_ITEM").html("Please wait...");
+		$.ajax({
+		    type    : "POST",
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    data    : $(this).serialize(),
+		    chace   : false,
+		    dataType : "json",
+		    success : function(data){
+			$("#CONTENT_ITEM").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+			if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %> == 1){
+			    $("#openadditem").modal("show");
+			    
+			    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>").val('');
+			}
+		    }
+		    
+		}).done(function(){
+                    
+                    
+                
+		    var itemName = $(".<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>").val();
+		    var itemOid = $(".<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_MATERIAL_ID] %>").val();
+		    var itemPrice = $(".<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_PRICE] %>").val();
+		    
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_PRICE] %>").val(itemPrice);
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_MATERIAL_ID] %>").val(itemOid);
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>").val(itemName);
+		    $("#CONTENT_ITEM_TITLE").html(itemName);
+		    
+		    $(".<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>").click(function(){
+			var itemName = $(this).data("name");
+			var itemOid = $(this).data("oid");
+			var itemPrice = $(this).data("price");
+			$("#openadditem").modal("show");
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>").val('');
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_PRICE] %>").val(itemPrice);
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_MATERIAL_ID] %>").val(itemOid);
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>").val(itemName);
+			$("#CONTENT_ITEM_TITLE").html(itemName);
+		    });
+                    
+                    textual();
+                    searchItemModal();
+			
+		});
+		return false;
+	    });
+	    
+	    $(".LOCATION_ID").change(function(){
+		$("#openitemlist").modal("show");
+		$("#CONTENT_ITEM").html("Please wait...");
+		$.ajax({
+		    type    : "POST",
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    data    : $("#openitemlist .additem").serialize(),
+		    chace   : false,
+		    dataType : "json",
+		    success : function(data){
+			$("#CONTENT_ITEM").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>).fadeIn("medium");
+			if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %> == 1){
+			    $("#openadditem").modal("show");
+			   
+			    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>").val('');
+			}
+		    }
+		    
+		}).done(function(){
+		    var itemName = $(".<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>").val();
+		    var itemOid = $(".<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_MATERIAL_ID] %>").val();
+		    var itemPrice = $(".<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_PRICE] %>").val();
+		    
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_PRICE] %>").val(itemPrice);
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_MATERIAL_ID] %>").val(itemOid);
+		    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>").val(itemName);
+		    $("#CONTENT_ITEM_TITLE").html(itemName);
+		    
+		    $(".<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>").click(function(){
+			var itemName = $(this).data("name");
+			var itemOid = $(this).data("oid");
+			var itemPrice = $(this).data("price");
+			$("#openadditem").modal("show");
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>").val('');
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_PRICE] %>").val(itemPrice);
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_MATERIAL_ID] %>").val(itemOid);
+			$("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>").val(itemName);
+			$("#CONTENT_ITEM_TITLE").html(itemName);
+		    });
+                    //alert('test');
+                    //test();
+			
+		});
+		return false;
+	    });
+	    
+	    $("form#<%= FrmBillDetail.FRM_NAME_BILL_DETAIL %>_ADD_ITEM").submit(function(){
+			    
+		$("#btnsaveitem").html("Please wait").attr({"disabled":true});
+		var billMainId = $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_MAIN_ID] %>_ADD_ITEM").val();
+		$.ajax({
+		    type    : "POST",
+		    url	: "<%= approot %>/TransactionCashierHandler",
+		    data    : $(this).serialize(),
+		    chace   : false,
+		    dataType : "json",
+		    success : function(data){
+			if(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %> == "SUCCESS"){
+			    $("#btnsaveitem").removeAttr("disabled").html("<i class='fa fa-plus'></i> Add Item");
+			    $("#openadditem").modal("hide");
+			    loadTransaction(billMainId,"loadbill",<%= Command.NONE %>,0,"CONTENT_LOAD");
+			}
+		    }
+		});
+		return false;
+	    });
+	    
+	    $("#searchallmemberbtn").click(function(){
+		$("#opensearchmember").modal("show");
+		$("#searchitem").val("");
+		searchMember("","loadsearchmember",<%= Command.NONE %>,"99","CONTENT_SEARCH_MEMBER","");
+	    });
+	    
+	    $("#addnewmember").click(function(){
+		var locationId = $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>").val();
+		
+		if(locationId !=0 && !isNaN(locationId)){
+		    
+		    
+		    $("#opennewmember").modal("show");
+		    $("#opennewmember #<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_LOCATION_ID] %>").val(locationId);
+		}else{
+		    alert("Please select location");
+		}
+		
+	    });
+            //FUNGSI UNTUK MENGECEK APAKAH OUTLET TERLETAK DI DEPARTEMENT FB ATAU TIDAK
+
+            
+	    $("#neworder").click(function(){
+                
+                var defGuest = <%=defineGuest%>;
+                
+                //apakah transaksi ini memerlukan guest atau tidak, 
+                if (defGuest=="1"){
+                    //transaksi memerlukan define guest
+                    //clean up form
+                    $("#openneworder #employee").val('');
+                    $("#openneworder #<%=FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").val('1');
+                    $("#openneworder #FRM_FIELD_TELP_MOBILE").val('');
+                    
+                    //tambahkan atribute required
+                    $("#openneworder #employee").attr("required","required");
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").attr("required","required");
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>").attr("required","required");
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>").attr("required","required");
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_SHIPPING_COUNTRY] %>").attr("required","required");
+                    var location = $('#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>').val();
+                    
+                    $("#openneworder").modal("show");
+                    
+                    //trigger change 
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>").trigger('change');
+                }else{
+                    //jika tidak perlu maka langsung create transaksi baru
+                    
+                    //hilangkan atribut required 
+                    $("#openneworder #employee").removeAttr("required");
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").removeAttr("required");
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>").removeAttr("required");
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>").removeAttr("required");
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_SHIPPING_COUNTRY] %>").removeAttr("required");
+                    
+                    //trigger change 
+                    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>").trigger('change');
+                   
+                    //submit form
+                    $("#openneworder #btnneworder").trigger('click');
+                }
+                var oidOutlet = $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>").val();
+                checkLocationDepartement (oidOutlet);
+                
+	    });
+	    $("form#<%= FrmContactList.FRM_NAME_CONTACTLIST %>").submit(function(){
+		var guestName = $("#<%= FrmContactList.FRM_NAME_CONTACTLIST %> #<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_PERSON_NAME] %>").val();
+		var phoneNumber = $("#<%= FrmContactList.FRM_NAME_CONTACTLIST %> #<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>").val();
+	    
+		$("#btnaddnewmember").attr({"disabled":"true"});
+		$.ajax({
+		    type    : "POST",
+		    data    : $(this).serialize(),
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    dataType : "json",
+		    cache   : false,
+		    success : function(data){
+			$("#btnaddnewmember").removeAttr("disabled");
+			if(!isNaN(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>)){
+			    
+			    $("#opennewmember").modal("hide");
+			    $("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CUSTOMER_ID] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_DISPLAY_TOTAL] %>);
+			}
+		    }
+		}).done(function(data){
+		    $("#openneworder #employee").val(guestName);
+		    $("#openneworder #<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>").val(phoneNumber);
+		    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CUSTOMER_ID] %>").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+		});
+		return false;
+	    });
+	    
+	    $("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>").change(function(){
+		var roomId = $(this).val();
+		$("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>").html("<option value=''>Please wait...</option>");
+		$.ajax({
+		    type    : "POST",
+		    data    : {
+				"loadtype":"checktable",
+				"command":"<%= Command.NONE %>",
+				"<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>":roomId
+			    },
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    dataType : "json",
+		    cache   : false,
+		    success : function(data){
+			$("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+		    }
+		});
+	    });
+	    
+	    
+	    $("#<%= FrmBillMain.FRM_NAME_BILL_MAIN %>_NEWORDER").submit(function(){
+		$("#btnneworder").html("Please wait...").attr({"disabled":"true"});
+		$.ajax({
+		    type    : "POST",
+		    data    : $(this).serialize(),
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    dataType : "json",
+		    cache   : false,
+		    success : function(data){
+                        //alert(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+                        $('#mainBillIdSource').val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+                        getLocationByCashBillMain(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+			$("#btnneworder").removeAttr("disabled").html("<i class='fa fa-check'></i> Save Order");
+			if(!isNaN(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>)){
+			    
+			    $("#openneworder").modal("hide");
+			    $("#<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_MAIN_ID] %>_ADD_ITEM").val(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+			    loadTransaction(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>,"loadbill",<%= Command.NONE %>,0,"CONTENT_LOAD");
+			    $(".itemsearch").removeAttr("readonly");
+			    $(".itemsearchbutton").removeAttr("disabled");
+			}
+		    }
+		});
+		return false;
+	    });
+	    
+	    $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>").change(function(){
+	    
+		var locationId = $(this).val();
+		$("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>").html("<option value=''>Please wait...</option>");
+		$.ajax({
+		    type    : "POST",
+		    data    : {
+				"loadtype":"checkroom",
+				"command":"<%= Command.NONE %>",
+				"<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>":locationId
+			    },
+		    url	    : "<%= approot %>/TransactionCashierHandler",
+		    dataType : "json",
+		    cache   : false,
+		    success : function(data){
+                        //cek apakah location ini menggunakan table, jika tidak maka pilihan table tidak usah ditampilkan
+                        if (data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>==0){
+                            //jika table tidak ditampilkan maka, combo box table akan disembunyikan, attribute required juga dihilangkan, pax juga hilang
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>").css('display','none');
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>").css('display','none');
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>").removeAttr("required");
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>").removeAttr("required");
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").val('1');
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").fadeOut();
+                        }else{
+                            //jika table ditampilkan maka combobox table akan ditampilkan, dan ditambahkan attribut required
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>").css('display','block');
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>").css('display','block');
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>").attr("required","required");
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>").attr("required","required");
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").val('');
+                            $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").fadeIn();
+                            $("#<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID] %>").html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+                            //alert(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>);
+                        }
+                        checkLocationDepartement(locationId);
+                    }
+		});
+	    });
+        
+            //JQUERY UNTUK FINGER PRINT
+            var base = "<%=baseURL%>";
+            var interval =0;
+            var interval2 =0;
+            var interval3 =0;
+            function ajaxFingerHandler(url,data,type,appendTo,another,optional,optional2){
+                $.ajax({
+                    url : ""+url+"",
+                    data: ""+data+"",
+                    type : ""+type+"",
+                    async : false,
+                    cache: false,
+                    success : function(data) {
+                        if (another=="checkUser" || another=="checkUser2" || another=="checkUserPayment"){
+                            $(''+appendTo+'').html(data);
+                        }
+                    },
+                    error : function(data){
+                        //alert('error');
+                    }
+                }).done(function(data){
+                    if (another=="checkUser"){
+                        fingerClick();  
+                        getCode();  
+                    }else if(another=="checkUser2"){
+                        fingerClick2();  
+                        getCode2();
+                    }else if(another=="checkUserPayment"){
+                        fingerClickPayment(); 
+                    }else if (another=="getCode"){
+                        $('#password').val(data);
+                    }else if (another=="getCode2"){
+                        $('#passwordSpv').val(data);
+                    }else if (another=="checkStatusUser"){
+                        if (data==1){
+                            clearInterval(interval);
+                            var loginId = $('#spvFinger').val();
+                            $('#spvName').val(loginId);
+                            alert('Verification success...');
+                            $('#<%= FrmAppUser.FRM_APP_USER %>').submit();
+                        }
+                    }else if (another=="checkStatusUser2"){
+                        if (data==1){
+                            clearInterval(interval2);
+                            alert('Verification success...');
+                            $('#closing').submit();
+                        }
+                    
+                    }else if(another=="checkStatusUserPayment"){
+                        if (data==1){
+                            clearInterval(interval3);
+                            //update history
+                            saveHistory();
+                        }
+                    }else if (another=="saveHistory"){
+                        if (data==1){
+                            alert('Verification Payment success...');
+                            //tekan tombol payment konvensional
+                            $('#openAuthorizePayment').modal('hide');
+                            $('#btnPaySave').trigger('click');
+                        }
+                        
+                    }
+                });
+            }
+            function ajaxTransactionHandler(url,data,type,appendTo,another,optional,optional2){
+                $.ajax({
+                    url : ""+url+"",
+                    data: ""+data+"",
+                    type : ""+type+"",
+                    dataType:"json",
+                    async : false,
+                    cache: false,
+                    success : function(data) {
+                        var html = data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML] %>;
+                        $(''+appendTo+'').html(html);
+                        if (another=="ctListTool"){
+                            $('#openCtCustomer').modal({
+                                backdrop: 'static',
+                                keyboard: false
+                            });
+                        }else if (another=="getLocationBill"){
+                            //alert(html);
+                            $('#locationBillIdSource').val(html);
+                        }else if (another=="checkDept"){
+                           if (html=="1"){
+                              $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").val('');
+                              $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").fadeIn();
+                           }else{
+                              $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").val('1');
+                              $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>").fadeOut(); 
+                           }
+                        }else if (another=="loadListReprintUp"){
+                            $('#openbillreprint').modal('show');
+                        }
+                        
+                    },
+                    error : function(data){
+                        //alert('error');
+                    }
+                }).done(function(data){
+                    
+                    if (another=="ctListTool"){
+                        loadCtListCustomer();
+                        searchCtKeyUp();
+                        newCtCustomer();
+                    }else if (another=="ctList"){
+                        selectCtCustomer();
+                    }else if (another=="addCtList"){
+                        var name = $("#<%= FrmContactList.FRM_NAME_CONTACTLIST %>2 #<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_PERSON_NAME] %>").val();
+                        
+                        $('#searchCtCustomer').val(name);
+                        $('#addCtCustomer').modal('hide');
+                        loadCtListCustomer();
+                    }else if (another=="loadListReprintUp"){
+                        loadListReprint();
+                        btnSearchReprintBill();
+                        dataSearchReprint();
+                        $('#dataSearchReprint').keydown(function(e){
+                            
+                            if (e.keyCode==40){ 
+                                //alert('test2');
+                                $('#openbillreprint .firstFocus').focus();
+                            }
+                        });
+                        
+                    }else if (another=="loadListReprint"){
+                        //alert(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML]%>);
+                        reprintBillSelect();
+                        textual4();
+                    }else if (another=="reprintBill"){
+                        
+                        $('#CONTENT_PRINT_PREVIEW').html(data.<%= BillMainJSON.fieldNames[BillMainJSON.FLD_HTML]%>);
+                        $('#openprintpreview').modal('show');
+                        window.print();
+                    }
+                });
+            }
+            function checkUser(){
+                var url = ""+base+"/FingerHandler";
+                var loginId = $('#spvFinger').val();
+                var data="command=<%=Command.ASK%>&login="+loginId+"&base="+base+"&group=1&type=1";
+                ajaxFingerHandler(url,data,"POST","#dynamicPlace","checkUser","","");
+            }
+            function checkUser2(){
+                var url = ""+base+"/FingerHandler";
+                var loginId = $('#supervisorName').val();
+                var data="command=<%=Command.ASK%>&login="+loginId+"&base="+base+"&group=1&type=2";
+                ajaxFingerHandler(url,data,"POST","#dynamicPlace2","checkUser2","","");
+            }
+            function checkUserPayment(){
+                var url = ""+base+"/FingerHandler";
+                var loginId = $('#spvFingerPayment').val();
+                var data="command=<%=Command.ASK%>&login="+loginId+"&base="+base+"&group=0&type=1";
+                ajaxFingerHandler(url,data,"POST","#dynamicPlacePayment","checkUserPayment","","");
+            }       
+            function checkStatusUser(userId){
+                var url = ""+base+"/FingerHandler";
+                var data="command=<%=Command.SEARCH%>&loginId="+userId+"";
+                ajaxFingerHandler(url,data,"POST","","checkStatusUser","","");
+            }            
+            function checkStatusUser2(userId){
+                var url = ""+base+"/FingerHandler";
+                var data="command=<%=Command.SEARCH%>&loginId="+userId+"";
+                ajaxFingerHandler(url,data,"POST","","checkStatusUser2","","");
+            }            
+            function checkStatusUserPayment(userId){
+                var url = ""+base+"/FingerHandler";
+                var data="command=<%=Command.SEARCH%>&loginId="+userId+"";
+                ajaxFingerHandler(url,data,"POST","","checkStatusUserPayment","","");
+            }
+            function getCode(){
+                var url = ""+base+"/FingerHandler";
+                var loginId = $('#spvFinger').val();
+                var data="command=<%=Command.DETAIL%>&login="+loginId+"";
+                ajaxFingerHandler(url,data,"POST","","getCode","","");
+            }
+            function getCode2(){
+                var url = ""+base+"/FingerHandler";
+                var loginId = $('#supervisorName').val();
+                var data="command=<%=Command.DETAIL%>&login="+loginId+"";
+                ajaxFingerHandler(url,data,"POST","","getCode2","","");
+            }
+            
+            function loadListReprintUp(){
+                var url = ""+base+"/TransactionCashierHandler";
+                var data = "loadtype=loadListReprintUp&command=<%=Command.NONE%>";
+                ajaxTransactionHandler(url,data,"POST","#openbillreprint #REPRINT_UP","loadListReprintUp","","");
+            }
+            function loadListReprint(){
+                var url = ""+base+"/TransactionCashierHandler";
+                var typeText = $('#dataSearchReprint').val();          
+                var data ="loadtype=loadListReprint&command=<%=Command.NONE%>&typeText="+typeText+"";
+                
+                ajaxTransactionHandler(url,data,"POST","#openbillreprint #REPRINT_LOW","loadListReprint","","");
+            }
+            
+            function reprintBillSelect(){
+                $('.reprintBillSelect').click(function(){
+                    
+                    var confirmText = "Are you sure you want to re-print this bill?";
+                    if(confirm(confirmText)) {
+                        var oid = $(this).data('mainoid');
+                        var oidMember = $(this).data('oidmember');
+                        var appRoot = "<%= approot%>";
+                        var url = ""+base+"/TransactionCashierHandler";    
+                        var data ="loadtype=reprint&command=<%=Command.NONE%>&member="+oidMember+"&appRoot="+appRoot+"&oidMain="+oid+"";
+                        ajaxTransactionHandler(url,data,"POST","#CONTENT_PRINT","reprintBill","","");
+                    }
+                    return false;
+                });
+            }
+            
+            function btnSearchReprintBill(){
+                $('#btnSearchReprintBill').click(function(){
+                    loadListReprint();
+                });
+            }
+            
+            function dataSearchReprint(){
+                $('#dataSearchReprint').keyup(function(){
+                    loadListReprint();
+                });
+            }
+            function fingerClick(){
+                //alert('test');
+                $('.loginFinger').click(function(){
+                    var loginId= $('#spvFinger').val();
+                    interval =  setInterval(function() {
+                        checkStatusUser(loginId);
+                    },5000);
+
+                });
+            }           
+            function fingerClick2(){
+                //alert('test');
+                $('.loginFinger2').click(function(){
+                    var loginId= $('#supervisorName').val();
+                    interval2 =  setInterval(function() {
+                        checkStatusUser2(loginId);
+                    },5000);
+
+                });
+            }           
+            function fingerClickPayment(){
+                //alert('test');
+                $('.loginFinger').click(function(){
+                    var loginId= $('#spvFingerPayment').val();
+                    interval3 =  setInterval(function() {
+                        checkStatusUserPayment(loginId);
+                    },5000);
+
+                });
+            }            
+            function saveHistory(){
+                 var oIdDoc = $('#<%=FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_CASH_BILL_MAIN_ID]%>').val();
+                 var loginId = $('#spvFingerPayment').val();
+                 var url = ""+base+"/FingerHandler";
+                 var data="command=<%=Command.ASSIGN%>&login="+loginId+"&oidDoc="+oIdDoc+"&base="+base+"cashier/cashier-transaction.jsp";
+                ajaxFingerHandler(url,data,"POST","","saveHistory","","");
+                 
+            }            
+            function loadCtCustomer(){
+                var url = ""+base+"/TransactionCashierHandler";
+                var data = "loadtype=ctListTool&command=<%=Command.NONE%>";
+                ajaxTransactionHandler(url,data,"POST",".ctBodyUp","ctListTool","","");
+            }
+            function loadCtListCustomer(){
+                var url = ""+base+"/TransactionCashierHandler";
+                var typeText = $('#searchCtCustomer').val();
+                var member = $("#member").val();
+                var data = "loadtype=ctList&command=<%=Command.NONE%>&typeText="+typeText+"&cashier="+member+"";
+                ajaxTransactionHandler(url,data,"POST",".ctBodyDown","ctList","","");
+            }        
+            function checkLocationDepartement(oid){
+               //var oidFBDepartement = ''; 
+               //var url = ""+base+"/TransactionCashierHandler";
+               //var data = "loadtype=checkDepartementOutlet&command=<%=Command.NONE%>&oidOutlet="+oid+"&oidDepartement="+oidFBDepartement+"";
+               
+               //ajaxTransactionHandler(url,data,"POST","","checkDept","","");
+            }        
+            function searchCtKeyUp(){
+                $('#searchCtCustomer').keyup(function(){
+                    loadCtListCustomer();
+                });
+            }           
+            function searchCtBtn(){
+                $('#btnSearchCtCustomer').click(function(){
+                    loadCtListCustomer();
+                });
+            }
+            
+            function selectCtCustomer(){
+                $('.selectCtCustomer').click(function(){
+                    var oId = $(this).data('oid');
+                    var personName = $(this).data('personname');
+                    var telpMobile = $(this).data('telp');
+                    var compName = $(this).data('company');
+                    
+                    $('#ctIdCustomer').val(oId);
+                    $('#ctCustomerName').val(personName);
+                    $('#ctMobilePhone').val(telpMobile);
+                    $('#ctCompany').val(compName);
+                    
+                    $('#openCtCustomer').modal('hide');
+                });
+            }
+            
+            function newCtCustomer(){
+                var locationId = $("#openneworder #<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>").val();
+                $("#addCtCustomer #<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_LOCATION_ID] %>").val(locationId);
+                $('#btnAddCtCustomer').click(function(){
+                    //clear form new customer 
+                    $("#<%= FrmContactList.FRM_NAME_CONTACTLIST %>2 #<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_PERSON_NAME] %>").val('');
+                    $("#<%= FrmContactList.FRM_NAME_CONTACTLIST %>2 #<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_COMP_NAME] %>").val('');
+                    $("#<%= FrmContactList.FRM_NAME_CONTACTLIST %>2 #<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>").val('');
+                    
+                    $('#addCtCustomer').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                });
+                
+            }
+            
+            $('#btnReprintBill').click(function(){
+                loadListReprintUp();
+            });
+        
+            $('#spvFinger').keyup(function(){
+                checkUser();
+            });
+            
+            $('#supervisorName').keyup(function(){
+                checkUser2();
+            });
+            
+            $('#opensearchmember #searchitem').keyup(function(){
+                $('#opensearchmember #btnSearchMember').trigger('click');
+            });
+            
+            $('#btnPayFinger').click(function(){
+                $('#spvFingerPayment').val('');
+                checkUserPayment();
+                $('#openAuthorizePayment').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+            });
+            
+            $('#spvFingerPayment').keyup(function(){
+                checkUserPayment();
+            });
+            
+            $("form#<%= FrmContactList.FRM_NAME_CONTACTLIST %>2").submit(function(){
+                var url = ""+base+"/TransactionCashierHandler";
+                var data = $(this).serialize();
+                ajaxTransactionHandler(url,data,"POST","","addCtList","","");
+                return false;
+            });
+            
+            $('#neworder2').click(function(){
+                var mainBill = $('#mainBillIdSource').val();
+                if (mainBill!="0"){
+                    $('#newOrderConfirmation').modal('show');
+                    
+                    //$('#newOrderConfirmation').on('shown.bs.modal', function () {
+                    //    $('#btnNewOrderClick').focus();
+                    //});
+                }else{
+                    $('#neworder').trigger('click');
+                }
+            });
+            
+            $('#btnNewOrderClick').click(function(){
+                $('#neworder').trigger('click');
+            });
+            
+            function getLocationByCashBillMain(cashBillMain){
+                var url = ""+base+"/TransactionCashierHandler";
+                var data = "loadtype=checklocation&command=<%=Command.NONE%>&cashier="+cashBillMain+"";
+                ajaxTransactionHandler(url,data,"POST","","getLocationBill","","");
+            }
+            
+ 
+            checkUser();
+	    checkUser2();
+            //$(".money").maskMoney({allowZero:true,decimal:'.'});
+            
+	    
+            $('.money').keyup(function(){
+                var value = $(this).val();
+                var conValue = parserNumber(value,false,0,'');
+                $(this).val(conValue);
+            });
+	});
+    </script>
+    
+    
+<!-- PAYMENT FORM  -->
+    <div id="openpay" class="modal nonprint" tabindex="-1" style="overflow-y: scroll;">
+      <div class="modal-dialog modal-large">
+	<div class="modal-content">
+	    <form id="<%= FrmCashPayment.FRM_NAME_CASH_PAYMENT %>">
+		<input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_APP_USER_ID] %>" value="<%= userId %>">
+		<input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_SHIFT_ID] %>" value="<%= shift.getOID() %>">
+		<input type='hidden' name='command' value='<%= Command.SAVE %>' id="command">
+		<input type="hidden" name="loadtype" value="" id="loadtype">
+		<input type='hidden' name='<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_CASHIER_ID] %>' value="<%= cashCashier.getOID() %>">
+	  <div class="modal-header">
+	      <div class="row">
+		  <div class="col-md-6">
+		    <h4 class="modal-title"><b>TRANSACTION PAYMENT</b></h4>
+		</div>
+		<div class="col-md-6" style="text-align: right;display: none;" id="CONTENT_INFO">
+		    <div class="col-md-12" style="background-color: #222D32;border-radius: 5px;color:#fff;">
+			 <h2 class='modal-title col-md-4 pull-left' style='font-weight: bold;color:#a1a1a1;' id="info">TOTAL</h2> <h2 class='modal-title col-md-8 pull-right' id="nominal"></h2>
+		    </div>
+		    <input type="hidden" name="<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>" value="0" id="<%= FrmCashPayment.fieldNames[FrmCashPayment.FRM_FIELD_AMOUNT_RETURN] %>">
+		</div>
+	      </div>
+	  </div>
+	<div class="modal-body" id="CONTENT_PAY">
+	      
+	  </div>
+	  <div class="modal-footer">
+		<input type="hidden" name="<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>" value='0' id='<%= BillMainJSON.fieldNames[BillMainJSON.FLD_BALANCE_VALUE] %>'>
+		<input type='hidden' name='<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>'  id='<%= BillMainJSON.fieldNames[BillMainJSON.FLD_CREDIT_CARD_CHARGE] %>' value='0'>
+		<input type='hidden' name='<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>' id='<%= BillMainJSON.fieldNames[BillMainJSON.FLD_PAID_VALUE] %>' value='0'>
+		<input type='hidden' name='<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>' id='<%= BillMainJSON.fieldNames[BillMainJSON.FLD_COSTUM_BALANCE] %>' value='0'>
+		<input type='hidden' name='<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>' id='<%= BillMainJSON.fieldNames[BillMainJSON.FLD_TAX_INC] %>' value='0'>
+		<input type="hidden" name='cansave' value="false" id="cansave">
+		<button type="button" class="btn btn-danger pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+		<button type="button" class="btn  btn-primary" id="printnota" style="display:none;">
+		    <i class="fa fa-print"></i> Print
+		</button>
+            <!--Kode untuk menentukan apakah menggunakan verifikasi finger atau tidak -->
+            <!--Apabila ya, maka akan menampilkan tombol showModal -->
+            <%
+            if(verificationType.equals("1")){
+            %>
+	    <button type="button" class="btn btn-success" id="btnPayFinger" style="display:none;">Pay</button>
+            <%
+            }
+            %>
+            <div class="cover" style="float: right; margin-left: 5px;<%=cssDisplay2%>">
+                <button type="button" class="btn btn-success" id="btnPaySave" style="display:none;">Pay</button>
+            </div>
+	  </div>
+	</form>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /.PAYMENT FORM  -->
+
+
+<!-- OPEN BILL -->
+    <div id="openbill" class="modal nonprint" >
+      <div class="modal-dialog modal-lg">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>OPEN BILL</b></h4>
+	    <div class="input-group">
+		<input type="text" class="form-control" placeholder="Scan or Search Transactions" id="datasearch"/>
+		<div class="input-group-addon btn btn-primary" id="btnSearch">
+		   <i class="fa fa-search"></i>
+		</div>
+	    </div>
+	  </div>
+	  <form id="returnBill">
+	    <div class="modal-body" id="CONTENT_SEARCH">
+	    </div>
+	    <div class="modal-footer">
+              <input value="0" id="selectedIdBill" type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID]%>">
+	      <input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_CASHIER_ID] %>" value="<%= cashCashier.getOID() %>">
+	      <input type="hidden" name="loadtype" id="loadtypereturn">
+	      <input type="hidden" name="command" value="<%= Command.NONE %>" id="commandreturn">
+              <!--
+	      <button type="button" id="btnOpen" class="btn btn-primary"><i class="fa fa-check"></i> Open</button>
+	      <button type="submit" id="btnOpenReturn" class="btn btn-primary"><i class="fa fa-check"></i> Open</button>
+              -->
+	      <button id="specialButton" type="button" class="btn btn-danger pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+	    </div>
+	  </form>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN BILL -->
+
+<!-- OPEN BILL REPRINT -->
+    <div id="openbillreprint" class="modal nonprint" >
+      <div class="modal-dialog modal-lg">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>REPRINT BILL</b></h4>
+
+          </div>
+            <div class="modal-body">
+                <div  id="REPRINT_UP"></div>
+                <br>
+                <div  id="REPRINT_LOW"></div>
+            </div>
+	  <div class="modal-footer">
+	      <button type="button" class="btn btn-danger pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+	  </div>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN BILL REPRINT-->
+
+<!-- LIST ITEM -->
+    <div id="openitemlist" class="modal nonprint" style="overflow-y: scroll;">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>ITEM LIST</b></h4>
+	    <form class="additem">
+		<%
+		    if(multilocation.equals("0")){
+		%>
+		<input type="hidden" name="LOCATION_ID" id="LOCATION_ID" value="<%= defaultOidLocation %>">
+		<%
+		    }else{
+			Vector location_key = new Vector(1,1);
+			Vector location_value = new Vector(1,1);
+
+			Vector listLocation = PstQueensLocation.list(0, 0, 
+				"", "");
+			if(listLocation.size() != 0){
+			    for(int i = 0; i<listLocation.size(); i++){
+				QueensLocation queensLocation = (QueensLocation) listLocation.get(i);
+				location_key.add(""+queensLocation.getOID());
+				location_value.add(""+queensLocation.getName());
+			    }
+			}
+		%>
+		<%= ControlCombo.drawBootsratap("LOCATION_ID", "Select Location", ""+location.getOID(), location_key, location_value, "required='required'", "form-control LOCATION_ID") %>
+		<%
+		    }
+		%>
+		
+		<div class="input-group">
+		    <input type="hidden" name="loadtype" value="loaditemlist">
+		    <input id="searchItemModal" type="text" name="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>" class="form-control itemsearch" placeholder="Scan or Search Items" readonly="true"/>
+		    
+		    
+		    <div class="input-group-addon" style="padding:0px;border:none;">
+			<button id="searchitemlocation" class="btn btn-primary input-group-addon itemsearchbutton"  style="padding-bottom: 9px;padding-top: 9px;padding-right: 25px;border-right: 1px solid #D2D6DE" disabled="true">
+			    <i class="fa fa-search"></i>
+			</button>
+		    </div>
+		    
+		</div><!-- /.input group -->
+	    </form>
+	  </div>
+	    <div class="modal-body" id="CONTENT_ITEM">
+	    </div>
+	    <div class="modal-footer">
+	    </div>
+	  
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. LIST ITEM -->
+
+<!-- CSS FOR FINGER PRINT -->
+<style>
+    .finger{
+        width:20%; 
+        height:auto;
+        padding : 2%;
+        float:left;
+     }
+    .finger_spot{
+        width:90%;
+        height: 90px;
+        background-color :#e5e5e5;
+        border : thin solid #c5c5c5;
+        font-size: 14px;
+        font-family:calibri;
+        text-align:center;
+        color :#FFF;
+        border-radius: 3px;
+    }
+    
+
+    .green{
+       background-color : #5CB85C;
+       border : thin solid #4CAE4C;
+    }
+</style>
+
+<!-- OPEN AUTORIZE -->
+    <div id="openauthorize" class="modal nonprint">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title" id="AUTHORIZE_TITLE"><b>SUPERVISOR AUTHORIZE</b></h4>
+	  </div>
+	  <div class="modal-body">
+	      <div  id="CONTENT_AUTHORIZE">
+		  
+	      </div>
+	      <form id="<%= FrmAppUser.FRM_APP_USER %>">
+		  <input type="hidden" name="loadtype" id="loadtypeauthorize">
+		  <input type="hidden" name="command" value="<%= Command.NONE %>">
+		  <input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID] %>" id="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID] %>_AUTHORIZE">
+		  <input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_CASHIER_ID] %>" value="<%= cashCashier.getOID() %>">
+                 
+                <div class="row" style="<%=cssDisplay%>">
+		<div class="box-body">
+		    <div class="col-md-6 col-md-offset-3">
+			<input id="spvName" type="text" class="form-control authorizeText" placeholder="Supervisor Username" name="<%= FrmAppUser.fieldNames[FrmAppUser.FRM_LOGIN_ID] %>">
+		    </div>
+		</div>   
+	      </div>
+	      <div style="<%=cssDisplay%> class="row">
+		<div class="box-body">
+		    <div class="col-md-6 col-md-offset-3">
+			<input id="password" type="password" autocomplete="off" class="form-control authorizeText" placeholder="Supervisor Password" name="<%= FrmAppUser.fieldNames[FrmAppUser.FRM_PASSWORD] %>">
+		    </div>
+		</div>   
+	      </div>
+	      <div style="<%=cssDisplay%> class="row">
+		<div class="box-body">
+		    <div class="col-md-6 col-md-offset-3">
+			<input type="submit" id="btnAuthorize" class="form-control btn btn-primary" value="Authorize">
+		    </div>
+		</div>   
+	      </div>
+             </form>
+                <%
+                 if (verificationType.equals("1")){   
+                 //apabila pada sistem property menggunakan verifikasi sidik jari
+                %>
+                <div class="row">
+                    <div class="box-body">
+                        <div class="col-md-6 col-md-offset-3">
+                            <input type="text" id="spvFinger" class="form-control" placeholder="Supervisor Username" name="">
+                        </div>
+                    </div>  
+                </div>
+                <div class="row">
+                    <div class="box-body" id='dynamicPlace'>
+                       
+                    </div>  
+                </div>       
+                <%}%>
+	    
+	  </div>
+	  <div class="modal-footer">
+	      <div id="cancelButton" style="display:none;">
+		  <button class="btn btn-danger pull-left" type="button" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
+		  <button class="btn btn-primary buttonCancel" type="button" id="btnMove" data-load-type="movebill"><i class="fa fa-share"></i> Move</button>
+	      </div>
+	  </div>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN AUTORIZE -->
+<!--OPEN AUTORIZE FINGER-->
+
+
+
+<!-- OPEN PRINT PREVIEW -->
+    <div id="openprintpreview" class="modal nonprint">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>PRINT PREVIEW</b></h4>
+	  </div>
+	  <div class="modal-body">
+	      <div  id="CONTENT_PRINT_PREVIEW">
+		  
+	      </div>
+	      
+	  </div>
+	  <div class="modal-footer">
+	      <button type="button" class="btn btn-primary" id="print">
+		  <i class="fa fa-print"></i> Print
+	      </button>
+	  </div>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN AUTORIZE -->
+
+
+<!-- OPEN ADD ITEM -->
+    <div id="openadditem" class="modal nonprint">
+      <div class="modal-dialog modal-sm">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>ADD ITEM</b> - <b id="CONTENT_ITEM_TITLE"></b></h4>
+	  </div>
+	    <form id="<%= FrmBillDetail.FRM_NAME_BILL_DETAIL %>_ADD_ITEM">
+		<div class="modal-body">
+		    <div>
+			<div class="row">
+			    <div class="box-body">
+				<div class='col-md-12'>
+				    <input type="hidden" name="loadtype" value="additem">
+				    <input type="hidden" name="command" value="<%= Command.SAVE %>">
+				    <input type='hidden' name='<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_MAIN_ID] %>' id='<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_MAIN_ID] %>_ADD_ITEM'>
+				    <input type="hidden" name="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_MATERIAL_ID] %>" id="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_MATERIAL_ID] %>">
+				    <input type="hidden" name="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_PRICE] %>" id="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_PRICE] %>">
+				    <input type="hidden" name="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>" id="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_ITEM_NAME] %>">
+				    <input type="number" class="form-control" name="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>" id="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>" placeholder="Quantity" required="required">
+				</div>
+			    </div>
+			</div>
+		    </div>
+
+		</div>
+		<div class="modal-footer">
+		    <button type="submit" class="btn btn-primary form-control" id="btnsaveitem">
+			<i class="fa fa-plus"></i> Add Item
+		    </button>
+		</div>
+	    </form>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN ADD ITEM -->
+
+
+<!-- OPEN GUEST DETAIL -->
+    <div id="openguestdetail" class="modal nonprint">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>GUEST DETAIL</b></h4>
+	  </div>
+	  <div class="modal-body">
+	      <form id="<%= FrmBillMain.FRM_NAME_BILL_MAIN %>">
+		<div class="row">
+		    <div class="col-md-6">
+			Guest Name
+		    </div>
+		    <div class="col-md-6">
+			<input type="text" class="form-control" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_GUEST_NAME] %>" required="required">
+		    </div>
+		</div>
+		<div class="row">
+		    <div class="col-md-6">
+			Pax Number
+		    </div>
+		    <div class="col-md-6">
+			<input type="text" class="form-control" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>" required="required">
+		    </div>
+		</div>
+	      </form>
+	  </div>
+	  <div class="modal-footer">
+	      <button type="button" class="btn btn-primary" id="print">
+		  <i class="fa fa-print"></i> Print
+	      </button>
+	  </div>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN GUEST DETAIL -->
+
+
+<!-- OPEN ITEM LIST -->
+    <div id="openmovesetguest" class="modal nonprint">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>GUEST DETAIL</b></h4>
+	  </div>
+	 <form id="<%= FrmBillMain.FRM_NAME_BILL_MAIN %>">
+	    <div class="modal-body">
+
+		  <input type='hidden' name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_CASHIER_ID] %>" id="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_CASHIER_ID]%>">
+		  <input type='hidden' name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID] %>" id="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_BILL_MAIN_ID] %>">
+		  <input type='hidden' name='loadtype' id='loadtype'>
+		  <input type="hidden" name="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>" id="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_QTY] %>">
+		  <input type="hidden" name="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_DETAIL_ID] %>" id="<%= FrmBillDetail.fieldNames[FrmBillDetail.FRM_FIELD_CASH_BILL_DETAIL_ID] %>">
+		  <input type='hidden' name='command' value='<%= Command.SAVE %>'>
+		  
+		  <div class="row">
+		      <div class="box-body">
+			  <div class="col-md-4">
+			      Guest Name
+			  </div>
+			  <div class="col-md-8">
+			      <input type="text" class="form-control" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_GUEST_NAME] %>"  id="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_GUEST_NAME] %>" required="required"> 
+			  </div>
+		      </div>
+		  </div>
+		  <div class="row">
+		      <div class="box-body">
+			  <div class="col-md-4">
+			      Pax Number
+			  </div>
+			  <div class="col-md-8">
+			      <input type="text" class="form-control" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>" required="required"> 
+			  </div>
+		      </div>
+		  </div>
+		  <div class="row">
+		    <div class="col-md-12">
+			<div class="alert alert-danger" id="FRM_MSG" style="display: none;"></div>
+		    </div>
+		  </div>
+
+	    </div>
+	    <div class="modal-footer">
+		<button class="btn btn-danger pull-left" type="button" data-dismiss="modal">
+		    <i class="fa fa-close"></i> Cancel
+		</button>
+		<button class="btn btn-primary" type="submit" id="btnSaveMove">
+		    <i class="fa fa-share"></i> Move
+		</button>
+	    </div>
+	</form>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN ITEM LIST -->
+
+
+<!-- CLOSING BALANCE -->
+    <div id="openclosingbalance" class="modal nonprint">
+      <div class="modal-dialog  modal-lg">
+	<div class="modal-content">
+	  
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>CLOSING BALANCE</b></h4>
+	  </div>
+	  <div class="modal-body" id="CONTENT_CLOSING">
+	     
+	  </div>
+	    <form id="closing" style='display:none;'>
+		<div class='modal-body'>
+		<input type="hidden" name="loadtype" value="closing">
+		<input type="hidden" name="command" value="<%= Command.SAVE %>">
+		<input type="hidden" name="<%= FrmCashCashier.fieldNames[FrmCashCashier.FRM_FIELD_CASH_CASHIER_ID] %>" value="<%= cashCashier.getOID() %>">
+		    <div class="row">
+			<div class="box-body">
+			    <div class="col-md-2">
+				Cashier Name
+			    </div>
+			    <div class="col-md-2">
+				: <%= userName %>
+			    </div>
+			</div>
+		    </div>
+		    <div class="row">
+			<div class="box-body">
+			    <div class="col-md-2">
+				<b>Date</b>
+			    </div>
+			    <div class="col-md-2">
+				: <%= Formater.formatDate(cashCashier.getCashDate(), "yyyy-MM-dd") %>
+			    </div>
+			    <div class="col-md-2">
+				<b>Start Time</b>
+			    </div>
+			    <div class="col-md-2">
+				: <%= Formater.formatDate(cashCashier.getCashDate(), "kk:mm:ss") %>
+			    </div>
+			    <div class="col-md-2">
+				<b>Closing Time</b>
+			    </div>
+			    <div class="col-md-2">
+				: <%= Formater.formatDate(new Date(), "kk:mm:ss") %>
+			    </div>
+			</div>
+		    </div>
+		    <div class="row">
+			<div class="box-body">
+			    <div class="col-md-2">
+				<b>Location</b>
+			    </div>
+			    <div class="col-md-2">
+				: <%= location.getName() %>
+			    </div>
+			    <div class="col-md-2">
+				<b>Shift</b>
+			    </div>
+			    <div class="col-md-2">
+				: <%= shift.getName()%>
+			    </div>
+			</div>
+		    </div>
+		    <div class="row">
+			<div class="col-md-12">
+			    <%= drawListClosing(listBalance,verificationType) %>
+			</div>
+		    </div>
+		
+	      <div id="RESULT_ERROR">
+		    
+	      </div>
+	    </div>
+	  <div class="modal-footer">
+	      <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">
+		  <i class="fa fa-close"></i> Cancel
+	      </button>
+	      <button type="submit" class="btn btn-success" id="closingButton">
+		  <i class="fa fa-check"></i> Closing Balance
+	      </button>
+	  </div>
+	  </form>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN AUTORIZE -->
+ 
+<!-- OPEN NEW ORDER -->
+    <div id="openneworder" class="modal nonprint">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>NEW ORDER</b></h4>
+	  </div>
+	    <form id="<%= FrmBillMain.FRM_NAME_BILL_MAIN %>_NEWORDER">
+	  <div class="modal-body">
+		
+	      <div class="row">
+		  <div class="box-body">
+		      <div class="col-md-12">
+			  <%
+			      Vector location_key = new Vector(1,1);
+			      Vector location_value = new Vector(1,1);
+
+			      location_key.add("");
+			      location_value.add(" -- Select --");
+
+			      Vector listLocation = PstLocation.listAll();
+
+			      if(listLocation.size() != 0){
+				  for(int i = 0; i<listLocation.size(); i++){
+				      Location location1 = (Location) listLocation.get(i);
+				      location_key.add(""+location1.getOID());
+				      location_value.add(""+location1.getName());
+				  }
+			      }
+			      
+			      
+			      if(multilocation.equals("0")){
+			  %>
+			    <input type="hidden" id="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>" name="<%= frmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID] %>" value="<%= ""+defaultOidLocation %>">
+			  <%
+			      }else{
+			  %>
+				<%= ControlCombo.drawBootsratap(FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_LOCATION_ID], null, ""+location.getOID(), location_key, location_value, "required='required'", "form-control") %>
+			  <%
+			      }
+			  %>
+			  
+			  
+		      </div>
+		  </div>
+	      </div>
+	      <div class="row">
+		  <div class="box-body">
+		      <div class="col-md-12">
+			  <div class="input-group">
+			      <input type="text" class="form-control" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_GUEST_NAME] %>" placeholder="Guest Name"  readonly="readonly" id="employee" required='required'>
+			      <input type="hidden" name="<%= FrmContactClass.fieldNames[FrmContactClass.FRM_FIELD_CLASS_TYPE] %>" id="<%= FrmContactClass.fieldNames[FrmContactClass.FRM_FIELD_CLASS_TYPE] %>" value="99">
+			      <div class="btn btn-primary input-group-addon" id="searchallmemberbtn">
+				  <i class="fa fa-search"></i>
+			      </div>
+			      <div class="btn btn-success input-group-addon" id="addnewmember">
+				  <i class="fa fa-plus"></i>
+			      </div>
+			  </div>
+			  <input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CUSTOMER_ID] %>" id="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CUSTOMER_ID] %>">
+		      </div>
+		  </div>
+	      </div>
+	     <div class="row">
+		 <div class="box-body">
+		     <div class="col-md-12">
+			 <input type="text" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_SHIPPING_MOBILE_NUMBER] %>" placeholder="Phone Number" class="form-control" readonly="readonly" id="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>">
+		     </div>
+		 </div>
+	     </div>
+	     <div class="row">
+		 <div class="box-body">
+		     <div class="col-md-12">
+			 <%
+			     Vector country_key = new Vector(1,1);
+			     Vector country_value = new Vector(1,1);
+			     
+			     Vector listCountry = PstNegara.listAll();
+			     if(listCountry.size() != 0){
+				 for(int i = 0; i < listCountry.size(); i++){
+				     Negara negara = (Negara) listCountry.get(i);
+				     country_key.add(""+negara.getNmNegara());
+				     country_value.add(""+negara.getNmNegara());
+				 }
+			     }
+			 %>
+			 <%= ControlCombo.drawBootsratap(FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_SHIPPING_COUNTRY], null, "", country_key, country_value, "required='required'", "form-control") %>
+		     </div>
+		 </div>
+	     </div>
+	     <div class="row">
+		 <div class="box-body">
+		     <div class="col-md-12">
+			 <input type="text" class="form-control" id="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_PAX_NUMBER] %>" placeholder="Pax Number" required='required'>
+		     </div>
+		 </div>
+	     </div>
+	    
+	    <div class="row">
+		<div class="box-body">
+		    <div class="col-md-12">
+			<%
+			    Vector room_key = new Vector(1,1);
+			    Vector room_value = new Vector(1,1);
+			    
+			    room_key.add("");
+			    room_value.add("All Room");
+			    Vector listRoom = PstRoom.list(0,0,""+PstRoom.fieldNames[PstRoom.FLD_LOCATION_ID]+"='"+defaultOidLocation+"'","");
+			    if(listRoom.size() != 0){
+				for(int i = 0; i<listRoom.size(); i++){
+				    Room room = (Room) listRoom.get(i);
+				    room_key.add(""+room.getOID());
+				    room_value.add(""+room.getName());
+				}
+			    }
+			   
+			%>
+			<!-- MAKE CONTROL COMBO HERE -->
+			<%= ControlCombo.drawBootsratap(FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_ROOM_ID], null, "", room_key, room_value, "required='required'", "form-control") %>
+		    </div>
+		</div>
+	    </div>
+	    <div class="row">
+		<div class="box-body">
+		    <div class="col-md-12">
+			<select name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>" id="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_TABLE_ID] %>" class="form-control" required='required'>
+			
+			</select>
+		    </div>
+		</div>
+	    </div>
+	  </div>
+	  <div class="modal-footer">
+	      <input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_CASHIER_ID] %>" value="<%= cashCashier.getOID() %>">
+	      <input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_SHIFT_ID] %>" value="<%= shift.getOID() %>">
+	      <input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_CASH_CASHIER_ID] %>" value="<%= cashCashier.getOID() %>">
+	      <input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_APP_USER_ID] %>" value="<%= userId %>">
+	      <input type="hidden" name="<%= FrmBillMain.fieldNames[FrmBillMain.FRM_FIELD_SALES_CODE] %>" value="<%= userName %>">
+	      <input type="hidden" name="loadtype" value="neworder">
+	      <input type="hidden" name="command" value="<%= Command.SAVE %>">
+	      <button type="submit" class="btn btn-primary form-control" id="btnneworder">
+		  <i class="fa fa-check"></i> Save Order
+	      </button>
+	  </div>
+	      
+	</form>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN NEW ORDER -->
+<!-- OPEN NEW MEMBER -->
+    <div id="opennewmember" class="modal nonprint">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>NEW MEMBER</b></h4>
+	  </div>
+	<form id="<%= FrmContactList.FRM_NAME_CONTACTLIST %>">
+	    <input type="hidden" name="command" value="<%= Command.SAVE %>">
+	    <input type="hidden" name="loadtype" value="newmember">
+	    <input type="hidden" name="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_LOCATION_ID] %>" id="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_LOCATION_ID] %>">
+	    <% %>
+	  <div class="modal-body">
+	      <div class="row">
+		  <div class="box-body">
+		      <div class="col-md-12">
+			  <input type="text" class="form-control" name="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_PERSON_NAME] %>" id="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_PERSON_NAME] %>" placeholder="Guest Name" required="required">
+		      </div>
+		  </div>
+	      </div>
+	      <div class="row">
+		  <div class="box-body">
+		      <div class="col-md-12">
+			  <input type="text" class="form-control" name="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>" id="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>" placeholder="Phone Number" required="required">
+		      </div>
+		  </div>
+	      </div>
+	  </div>
+	  <div class="modal-footer">
+	      
+	      
+	    <button type="submit" class="btn btn-primary" id="btnaddnewmember"><i class="fa fa-check"></i> Save</button> 
+	    <button type="button" class="btn btn-danger pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+	    
+	  </div>
+	</form>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN NEW MEMBER -->
+<!-- OPEN SEARCH MEMBER -->
+    <div id="opensearchmember" class="modal nonprint">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title"><b>SEARCH</b></h4>
+	    <div class="input-group">
+		<input type="text" class="form-control" placeholder="Search..." id="searchitem"/>
+		<div class="input-group-addon btn btn-primary" id="btnSearchMember">
+		    <i class="fa fa-search"></i>
+		</div>
+	    </div>
+	  </div>
+	  <div class="modal-body" id="CONTENT_SEARCH_MEMBER">
+	  </div>
+	  <div class="modal-footer">
+	      <div id="buttonInHouseGuest" class="btn-group" style="display:none;">
+		
+		<button class="btn btn-default btnsearchtype" type="button" id="btnGuest" data-search-type="guest"><i class="fa fa-user"></i> Guest</button>
+		<button class="btn btn-default btnsearchtype" type="button" id="btnTravelagent" data-search-type="travelagent"><i class="fa fa-building"></i> Travel Agent</button>
+	    </div> 
+            <!--
+	    <button type="button" id="btnSelect" class="btn btn-primary"><i class="fa fa-check"></i> Open</button> 
+            -->
+	    <button type="button" class="btn btn-danger pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+	    
+	  </div>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+<!-- /. OPEN SEARCH MEMBER -->
+<!-- OPEN AUTORIZE PAYMENT -->
+    <div id="openAuthorizePayment" class="modal nonprint">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title" id="AUTHORIZE_TITLE"><b>AUTHORIZE</b></h4>
+	  </div>
+	  <div class="modal-body">
+            <div class="row">
+                <div class="box-body">
+                    <div class="col-md-6 col-md-offset-3">
+                        <input type="text" id="spvFingerPayment" class="form-control" placeholder="Username" name="">
+                    </div>
+                </div> 
+            </div>
+            <div class="row">
+                <div class="box-body" id='dynamicPlacePayment'>
+
+                </div>  
+            </div>       
+	  </div>
+	  <div class="modal-footer">
+	      <div id="cancelButton" style="display:none;">
+		  <button class="btn btn-danger pull-left" type="button" data-dismiss="modal"><i class="fa fa-close"></i> Close</button
+	      </div>
+	  </div>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+  </div>
+<!-- /. OPEN AUTORIZE PAYMENT-->
+
+<!-- SEARCH CUSTOMER BY KOYO -->
+    <div id="openCtCustomer" class="modal nonprint">
+      <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title" id="AUTHORIZE_TITLE"><b>SEARCH</b></h4>
+            <div class='ctBodyUp'></div>
+	  </div>
+	  <div class="modal-body">
+              <div class="ctBodyDown"></div>
+	  </div>
+	  <div class="modal-footer">
+	      <div id="cancelButton">
+		  <button class="btn btn-danger pull-left" type="button" data-dismiss="modal"><i class="fa fa-close"></i> Close</button
+	      </div>
+	  </div>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+  </div>
+  <!--END OF SEARCH CUSTOMER -->
+  
+  <!-- ADD NEW CT CUSTOMER KOYO -->
+  <div id="addCtCustomer" class="modal nonprint">
+        <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                  <h4 class="modal-title" id="AUTHORIZE_TITLE"><b>NEW CUSTOMER</b></h4>
+
+              </div>
+              <form id="<%= FrmContactList.FRM_NAME_CONTACTLIST %>2">
+                    <input type="hidden" name="command" value="<%= Command.SAVE %>">
+                    <input type="hidden" name="loadtype" value="newctmember">
+                    <input type="hidden" name="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_LOCATION_ID] %>" id="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_LOCATION_ID] %>">
+	    
+                    <div class="modal-body">
+                    <div class="row">
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <input type="text" class="form-control" name="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_PERSON_NAME] %>" id="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_PERSON_NAME] %>" placeholder="Guest Name" required="required">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <input type="text" class="form-control" name="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>" id="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_TELP_MOBILE] %>" placeholder="Phone Number" required="required">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="box-body">
+                            <div class="col-md-12">
+                                <input type="text" class="form-control" name="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_COMP_NAME] %>" id="<%= FrmContactList.fieldNames[FrmContactList.FRM_FIELD_COMP_NAME] %>" placeholder="Company" required="required">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="btnAddCtCustomer"><i class="fa fa-check"></i> Save</button> 
+                    <button type="button" class="btn btn-danger pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>	    
+                </div>
+            </form>
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+  </div>
+  <!-- END OF CT CUSTOMER -->
+  
+  <!-- NEW ORDER CONFIRMATION -->
+    <div id="newOrderConfirmation" class="modal nonprint">
+      <div class="modal-dialog modal-sm">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    <h4 class="modal-title" id="AUTHORIZE_TITLE"><b>Confirmation</b></h4>
+	  </div>
+	  <div class="modal-body">
+              The older transaction is already exist. Do you want to continue ?
+	  </div>
+	  <div class="modal-footer">
+	      <div id="cancelButton">
+                  <button id="btnNewOrderClick" class="btn btn-primary" type="button" data-dismiss="modal"><i class="fa fa-check"></i> Yes</button>
+		  <button class="btn btn-danger" type="button" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+                  
+	      </div>
+	  </div>
+	</div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+  </div>
+  <!--END OF SEARCH CUSTOMER -->
+  
+  
+      <!-- PLUGINS COMPONEN -->
+    <%@include file="cashier-plugin.jsp" %>
+  </body>
+</html>
